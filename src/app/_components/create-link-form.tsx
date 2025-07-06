@@ -48,7 +48,7 @@ export function CreateLinkForm() {
   const onSubmit = (data: FormData) => {
     createLink.mutate({
       url: data.url,
-      slug: data.slug || undefined,
+      slug: data.slug ?? undefined,
     });
   };
 

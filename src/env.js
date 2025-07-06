@@ -11,21 +11,37 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
-    AUTH_DISCORD_ID: z.string(),
-    AUTH_DISCORD_SECRET: z.string(),
-    AUTH_GITHUB_ID: z.string(),
-    AUTH_GITHUB_SECRET: z.string(),
-    AUTH_GOOGLE_ID: z.string(),
-    AUTH_GOOGLE_SECRET: z.string(),
+    AUTH_DISCORD_ID: process.env.NODE_ENV === "production"
+      ? z.string()
+      : z.string().optional(),
+    AUTH_DISCORD_SECRET: process.env.NODE_ENV === "production"
+      ? z.string()
+      : z.string().optional(),
+    AUTH_GITHUB_ID: process.env.NODE_ENV === "production"
+      ? z.string()
+      : z.string().optional(),
+    AUTH_GITHUB_SECRET: process.env.NODE_ENV === "production"
+      ? z.string()
+      : z.string().optional(),
+    AUTH_GOOGLE_ID: process.env.NODE_ENV === "production"
+      ? z.string()
+      : z.string().optional(),
+    AUTH_GOOGLE_SECRET: process.env.NODE_ENV === "production"
+      ? z.string()
+      : z.string().optional(),
     DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
     RATE_LIMIT_ANONYMOUS: z.coerce.number().int().min(1).default(3),
-    RATE_LIMIT_FREE: z.coerce.number().int().min(1).default(3),
-    RATE_LIMIT_PRO: z.coerce.number().int().min(1).default(10),
-    UPSTASH_REDIS_REST_URL: z.string().url(),
-    UPSTASH_REDIS_REST_TOKEN: z.string(),
+    RATE_LIMIT_FREE: z.coerce.number().int().min(1).default(5),
+    RATE_LIMIT_PRO: z.coerce.number().int().min(1).default(20),
+    UPSTASH_REDIS_REST_URL: process.env.NODE_ENV === "production"
+      ? z.string().url()
+      : z.string().url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: process.env.NODE_ENV === "production"
+      ? z.string()
+      : z.string().optional(),
   },
 
   /**
@@ -34,7 +50,9 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().url(),
+    NEXT_PUBLIC_APP_URL: process.env.NODE_ENV === "production"
+      ? z.string().url()
+      : z.string().url().default("http://localhost:3000"),
   },
 
   /**

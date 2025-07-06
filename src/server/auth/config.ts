@@ -114,7 +114,7 @@ export const authConfig = {
       ...session,
       user: {
         ...session.user,
-        id: token.sub!,
+        id: token.sub ?? "",
         subscriptionPlan:
           token.subscriptionPlan as PrismaUser["subscriptionPlan"],
       },

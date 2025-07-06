@@ -1,21 +1,9 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { type NextRequest } from "next/server";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-
-// Create a new ratelimiter that allows 3 requests per day
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(3, "1 d"),
-  analytics: true,
-});
 
 // Add paths that require authentication
 const authPaths = ["/dashboard", "/analytics"];
-
-// Add paths that require rate limiting
-const rateLimitPaths = ["/api/links/create"];
 
 export default async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
@@ -28,25 +16,6 @@ export default async function middleware(req: NextRequest) {
       const url = new URL("/login", req.url);
       url.searchParams.set("callbackUrl", path);
       return NextResponse.redirect(url);
-    }
-  }
-
-  // Check rate limiting for specific paths
-  if (rateLimitPaths.some((p) => path.startsWith(p))) {
-    const ip = req.ip ?? "127.0.0.1";
-    const { success, limit, reset, remaining } = await ratelimit.limit(
-      `ratelimit_${ip}`,
-    );
-
-    if (!success) {
-      return new NextResponse("Too many requests", {
-        status: 429,
-        headers: {
-          "X-RateLimit-Limit": limit.toString(),
-          "X-RateLimit-Remaining": remaining.toString(),
-          "X-RateLimit-Reset": reset.toString(),
-        },
-      });
     }
   }
 
