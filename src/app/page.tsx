@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getServerAuthSession } from "~/server/auth";
+import { auth } from "~/server/auth";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -8,13 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { api } from "~/trpc/server";
 import Link from "next/link";
 import { CreateLinkForm } from "./_components/create-link-form";
 
 export default async function Home() {
-  const session = await getServerAuthSession();
+  const session = await auth();
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">

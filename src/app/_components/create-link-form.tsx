@@ -97,9 +97,9 @@ export function CreateLinkForm() {
           <Button
             type="submit"
             className="w-full"
-            disabled={createLink.isLoading}
+            disabled={createLink.isPending}
           >
-            {createLink.isLoading ? "Creating..." : "Create Short Link"}
+            {createLink.isPending ? "Creating..." : "Create Short Link"}
           </Button>
         </form>
       </Form>

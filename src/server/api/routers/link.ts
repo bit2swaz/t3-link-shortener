@@ -19,7 +19,7 @@ export const linkRouter = createTRPCRouter({
   create: publicProcedure.input(linkInput).mutation(async ({ ctx, input }) => {
     const { url, slug } = input;
     const userId = ctx.session?.user.id;
-    const ip = ctx.req?.headers["x-forwarded-for"] ?? "127.0.0.1";
+    const ip = ctx.headers.get("x-forwarded-for") ?? "127.0.0.1";
 
     // Check rate limits based on user type
     const today = new Date();

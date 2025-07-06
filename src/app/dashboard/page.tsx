@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getServerAuthSession } from "~/server/auth";
+import { auth } from "~/server/auth";
 import { redirect } from "next/navigation";
 import {
   Card,
@@ -11,7 +11,7 @@ import {
 import { UserLinks } from "./_components/user-links";
 
 export default async function DashboardPage() {
-  const session = await getServerAuthSession();
+  const session = await auth();
 
   if (!session) {
     redirect("/login");

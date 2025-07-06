@@ -105,7 +105,7 @@ export function UserLinks() {
                       slug: editingLink.slug,
                     });
                   }}
-                  disabled={updateLink.isLoading}
+                  disabled={updateLink.isPending}
                 >
                   Save
                 </Button>

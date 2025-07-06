@@ -29,6 +29,9 @@ declare module "next-auth" {
   }
 }
 
+// Create a custom adapter with type assertion to avoid type conflicts
+const customAdapter = PrismaAdapter(db) as any;
+
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -102,7 +105,7 @@ export const authConfig = {
       },
     }),
   ],
-  adapter: PrismaAdapter(db),
+  adapter: customAdapter,
   session: {
     strategy: "jwt",
   },

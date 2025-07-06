@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getServerAuthSession } from "~/server/auth";
+import { auth } from "~/server/auth";
 import { redirect } from "next/navigation";
 import {
   Card,
@@ -11,7 +11,7 @@ import {
 import { LoginForm } from "./_components/login-form";
 
 export default async function LoginPage() {
-  const session = await getServerAuthSession();
+  const session = await auth();
 
   if (session) {
     redirect("/dashboard");
