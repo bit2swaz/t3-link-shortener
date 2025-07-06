@@ -61,7 +61,7 @@ export const authConfig = {
         },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -74,10 +74,12 @@ export const authConfig = {
           image: true,
           emailVerified: true,
           subscriptionPlan: true,
+          createdAt: true,
+          updatedAt: true,
         } satisfies Prisma.UserSelect;
 
         const user = await db.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email as string },
           select: userSelect,
         });
 
@@ -86,7 +88,7 @@ export const authConfig = {
         }
 
         const isPasswordValid = await bcrypt.compare(
-          credentials.password,
+          credentials.password as string,
           user.password,
         );
 
@@ -101,6 +103,8 @@ export const authConfig = {
           image: user.image,
           emailVerified: user.emailVerified,
           subscriptionPlan: user.subscriptionPlan,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         };
       },
     }),
