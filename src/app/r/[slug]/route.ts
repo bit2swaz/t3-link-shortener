@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { slug: string } },
 ) {
   const slug = params.slug;
-  const headersList = await headers();
+  const headersList = headers();
   const ip = headersList.get("x-forwarded-for") ?? "127.0.0.1";
   const userAgent = headersList.get("user-agent") ?? "Unknown";
 
@@ -37,8 +37,7 @@ export async function GET(
     });
 
     // Redirect to the original URL
-    const url = link.originalUrl as string;
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(link.originalUrl as string);
   } catch (error) {
     console.error("Error processing link:", error);
     return new NextResponse("Internal Server Error", { status: 500 });

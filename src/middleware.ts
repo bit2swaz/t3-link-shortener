@@ -19,6 +19,21 @@ export default async function middleware(req: NextRequest) {
     }
   }
 
+  // Handle slug redirects - redirect root level slugs to /r/[slug]
+  const slugMatch = /^\/([a-zA-Z0-9_-]+)$/.exec(path);
+  if (
+    slugMatch &&
+    !authPaths.some((p) => path.startsWith(p)) &&
+    path !== "/login" &&
+    path !== "/signup" &&
+    path !== "/" &&
+    !path.startsWith("/_next") &&
+    !path.startsWith("/api")
+  ) {
+    const slug = slugMatch[1];
+    return NextResponse.redirect(new URL(`/r/${slug}`, req.url));
+  }
+
   return NextResponse.next();
 }
 
