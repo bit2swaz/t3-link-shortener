@@ -14,18 +14,6 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
-
-    @@index([name])
-}
-
 // Necessary for Next auth
 model Account {
     id                       String  @id @default(cuid())
@@ -55,14 +43,18 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    posts         Post[]
+    id               String    @id @default(cuid())
+    name             String?
+    email            String?   @unique
+    emailVerified    DateTime?
+    image            String?
+    password         String? // Hashed password for email/password auth
+    subscriptionPlan String    @default("free") // "free" | "pro" | "enterprise"
+    accounts         Account[]
+    sessions         Session[]
+    links            Link[]
+    createdAt        DateTime  @default(now())
+    updatedAt        DateTime  @updatedAt
 }
 
 model VerificationToken {
@@ -71,4 +63,35 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Link {
+    id          String       @id @default(cuid())
+    slug        String       @unique
+    originalUrl String
+    userId      String? // nullable for anonymous links
+    user        User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+    clicks      ClickEvent[]
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+    createdByIp String // to track anonymous users
+    clickCount  Int          @default(0)
+
+    @@index([userId])
+    @@index([createdByIp])
+    @@index([slug])
+}
+
+model ClickEvent {
+    id        String   @id @default(cuid())
+    linkId    String
+    link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+    timestamp DateTime @default(now())
+    ip        String
+    userAgent String
+    country   String? // Optional: for future geo-tracking
+    city      String? // Optional: for future geo-tracking
+
+    @@index([linkId])
+    @@index([timestamp])
 }
