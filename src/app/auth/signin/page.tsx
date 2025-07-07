@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 "use client";
 
 import { useState, Suspense, useEffect } from "react";
@@ -76,7 +75,8 @@ function SignInForm() {
 
         toast.success("Signed in successfully!");
         setLoading(false);
-        router.push(callbackUrl);
+        // Force reload to ensure session is available and UI updates
+        window.location.replace(callbackUrl);
       } else {
         // Sign in
         console.log("Attempting to sign in with:", { email });
@@ -96,7 +96,8 @@ function SignInForm() {
 
         toast.success("Signed in successfully!");
         setLoading(false);
-        router.push(callbackUrl);
+        // Force reload to ensure session is available and UI updates
+        window.location.replace(callbackUrl);
       }
     } catch (error) {
       console.error("Authentication error:", error);
@@ -110,7 +111,7 @@ function SignInForm() {
   const handleSocialSignIn = (provider: string) => {
     console.log(`Attempting to sign in with ${provider}`);
     setLoading(true);
-    toast.info(`Redirecting to ${provider} for authentication...`);
+    toast("Redirecting to " + provider + " for authentication...");
     void signIn(provider, { callbackUrl });
   };
 

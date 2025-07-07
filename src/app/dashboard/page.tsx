@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -92,7 +91,7 @@ export default function DashboardPage() {
   }
 
   if (status === "unauthenticated") {
-    return null; // Will be redirected by the useEffect
+    return null;
   }
 
   return (
