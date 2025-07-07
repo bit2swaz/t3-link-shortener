@@ -1,8 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { Button } from "~/components/ui/button";
+
+interface ShortenedLink {
+  originalUrl: string;
+  shortUrl: string;
+  slug: string;
+  createdAt: string;
+}
 
 export default function ShortenPage() {
   const [originalUrl, setOriginalUrl] = useState("");
@@ -10,6 +17,20 @@ export default function ShortenPage() {
   const [shortUrl, setShortUrl] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [savedLinks, setSavedLinks] = useState<ShortenedLink[]>([]);
+  const [showSavedLinks, setShowSavedLinks] = useState(false);
+
+  // Load saved links from localStorage on component mount
+  useEffect(() => {
+    const storedLinks = localStorage.getItem("shortenedLinks");
+    if (storedLinks) {
+      try {
+        setSavedLinks(JSON.parse(storedLinks) as ShortenedLink[]);
+      } catch (err) {
+        console.error("Failed to parse stored links:", err);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -29,7 +50,11 @@ export default function ShortenPage() {
         }),
       });
 
-      const data = (await response.json()) as { error?: string; shortUrl?: string };
+      const data = (await response.json()) as {
+        error?: string;
+        shortUrl?: string;
+        slug?: string;
+      };
 
       if (!response.ok) {
         setError(data.error ?? "Failed to shorten URL");
@@ -38,6 +63,18 @@ export default function ShortenPage() {
 
       if (data.shortUrl) {
         setShortUrl(data.shortUrl);
+
+        // Save to localStorage
+        const newLink: ShortenedLink = {
+          originalUrl,
+          shortUrl: data.shortUrl,
+          slug: data.slug ?? "",
+          createdAt: new Date().toISOString(),
+        };
+
+        const updatedLinks = [newLink, ...savedLinks].slice(0, 10); // Keep only the 10 most recent links
+        setSavedLinks(updatedLinks);
+        localStorage.setItem("shortenedLinks", JSON.stringify(updatedLinks));
       }
     } catch (err) {
       setError("An error occurred while shortening the URL");
@@ -45,6 +82,18 @@ export default function ShortenPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        // You could add a toast notification here if you want
+        console.log("URL copied to clipboard");
+      })
+      .catch((err) => {
+        console.error("Failed to copy URL:", err);
+      });
   };
 
   return (
@@ -81,9 +130,20 @@ export default function ShortenPage() {
           />
         </div>
 
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Shortening..." : "Shorten URL"}
-        </Button>
+        <div className="flex gap-4">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Shortening..." : "Shorten URL"}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowSavedLinks(!showSavedLinks)}
+            disabled={savedLinks.length === 0}
+          >
+            {showSavedLinks ? "Hide" : "View"} shortened links
+          </Button>
+        </div>
       </form>
 
       {error && <div className="mt-4 rounded-md bg-red-50 p-4 text-red-700">{error}</div>}
@@ -91,14 +151,57 @@ export default function ShortenPage() {
       {shortUrl && (
         <div className="mt-4 rounded-md bg-green-50 p-4">
           <p className="font-medium">Your shortened URL:</p>
-          <a
-            href={shortUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-1 block break-all text-blue-600 hover:underline"
-          >
-            {shortUrl}
-          </a>
+          <div className="mt-1 flex items-center gap-2">
+            <a
+              href={shortUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="break-all text-blue-600 hover:underline"
+            >
+              {shortUrl}
+            </a>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => copyToClipboard(shortUrl)}
+            >
+              Copy
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {showSavedLinks && savedLinks.length > 0 && (
+        <div className="mt-8 border-t pt-6">
+          <h2 className="mb-4 text-xl font-semibold">Your shortened links</h2>
+          <div className="space-y-3">
+            {savedLinks.map((link, index) => (
+              <div key={index} className="rounded-md border p-3">
+                <p className="mb-1 text-sm text-gray-500 truncate" title={link.originalUrl}>
+                  Original: {link.originalUrl}
+                </p>
+                <div className="flex items-center justify-between">
+                  <a
+                    href={link.shortUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {link.shortUrl}
+                  </a>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(link.shortUrl)}
+                  >
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
