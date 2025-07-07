@@ -79,6 +79,7 @@ export const authConfig = {
           return {
             id: user.id,
             email: user.email,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             username: user.username,
           };
         } catch (error) {
@@ -92,7 +93,7 @@ export const authConfig = {
       clientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
       profile(profile) {
         return {
-          id: profile.id.toString(),
+          id: String(profile.id),
           name: profile.name ?? profile.login,
           email: profile.email,
           image: profile.avatar_url,
@@ -104,29 +105,34 @@ export const authConfig = {
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
       profile(profile) {
-        const username = profile.email ? profile.email.split("@")[0] : null;
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+        const username =
+          profile.email && typeof profile.email === "string" ? profile.email.split("@")[0] : null;
         return {
-          id: profile.sub,
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture,
+          id: String(profile.sub),
+          name: String(profile.name),
+          email: String(profile.email),
+          image: String(profile.picture),
           username,
         };
+        /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
       },
     }),
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID ?? "",
       clientSecret: process.env.DISCORD_CLIENT_SECRET ?? "",
       profile(profile) {
+        /* eslint-disable @typescript-eslint/no-unsafe-member-access */
         return {
-          id: profile.id,
-          name: profile.username,
-          email: profile.email,
+          id: String(profile.id),
+          name: String(profile.username),
+          email: String(profile.email),
           image: profile.avatar
             ? `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`
             : null,
-          username: profile.username,
+          username: String(profile.username),
         };
+        /* eslint-enable @typescript-eslint/no-unsafe-member-access */
       },
     }),
     TwitterProvider({
@@ -134,11 +140,11 @@ export const authConfig = {
       clientSecret: process.env.TWITTER_CLIENT_SECRET ?? "",
       profile(profile) {
         return {
-          id: profile.data.id,
-          name: profile.data.name,
-          email: profile.data.email,
-          image: profile.data.profile_image_url,
-          username: profile.data.username,
+          id: String(profile.data.id),
+          name: String(profile.data.name),
+          email: String(profile.data.email),
+          image: String(profile.data.profile_image_url),
+          username: String(profile.data.username),
         };
       },
     }),

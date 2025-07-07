@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
@@ -57,7 +57,7 @@ export default function SignInPage() {
         }
 
         router.push(callbackUrl);
-      } catch (err) {
+      } catch (_error) {
         setError("An error occurred during sign up");
         setLoading(false);
       }
@@ -77,7 +77,7 @@ export default function SignInPage() {
         }
 
         router.push(callbackUrl);
-      } catch (err) {
+      } catch (_error) {
         setError("An error occurred during sign in");
         setLoading(false);
       }

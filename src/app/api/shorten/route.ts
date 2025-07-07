@@ -22,7 +22,8 @@ export async function POST(request: Request) {
     // Validate originalUrl
     try {
       new URL(originalUrl);
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
       return Response.json({ error: "Invalid URL provided" }, { status: 400 });
     }
 
