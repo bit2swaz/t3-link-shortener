@@ -1,10 +1,7 @@
 import { Button } from "~/components/ui/button";
-import { auth } from "~/server/auth";
 import Link from "next/link";
 
 export default async function Home() {
-  const session = await auth();
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
       <div className="container flex flex-col items-center justify-center gap-6 px-4 py-16">
@@ -16,20 +13,9 @@ export default async function Home() {
             <Link href="/shorten">Shorten a URL</Link>
           </Button>
 
-          {session ? (
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Button asChild variant="default">
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/api/auth/signout">Sign out</Link>
-              </Button>
-            </div>
-          ) : (
-            <Button asChild variant="outline">
-              <Link href="/auth/signin">Sign in</Link>
-            </Button>
-          )}
+          <Button asChild variant="default">
+            <Link href="/dashboard">Dashboard</Link>
+          </Button>
         </div>
 
         <div className="mt-8 text-center max-w-md">

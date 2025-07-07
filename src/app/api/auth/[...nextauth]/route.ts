@@ -1,3 +1,2 @@
-import { GET, POST } from "~/server/auth";
-
-export { GET, POST };
+// This route is obsolete. Authentication has been removed.
+export {};

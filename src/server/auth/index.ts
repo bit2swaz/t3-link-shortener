@@ -1,11 +1,1 @@
-// This file contains the configuration for NextAuth.js
-import NextAuth from "next-auth";
-
-import { authConfig } from "./config";
-
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth(authConfig);
+// This file is obsolete. Authentication has been removed.

@@ -1,5 +1,4 @@
 import { nanoid } from "nanoid";
-import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
 // Base URL for the shortened links
@@ -12,10 +11,6 @@ interface ShortenRequest {
 
 export async function POST(request: Request) {
   try {
-    // Get the authenticated user (if any)
-    const session = await auth();
-    const userId = session?.user?.id;
-
     const body = (await request.json()) as ShortenRequest;
     const { originalUrl, slug: customSlug } = body;
 
@@ -27,7 +22,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "Invalid URL provided" }, { status: 400 });
     }
 
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+    //
     // Check if URL already exists
     const existingUrl = await db.link.findUnique({
       where: { originalUrl },
@@ -62,6 +57,9 @@ export async function POST(request: Request) {
     const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
     const userAgent = request.headers.get("user-agent") ?? "Unknown";
 
+    // Get or generate per-visitor UUID
+    let uuid = request.headers.get("x-visitor-uuid");
+    if (!uuid) uuid = crypto.randomUUID();
     // Store in database
     const link = await db.link.create({
       data: {
@@ -69,7 +67,7 @@ export async function POST(request: Request) {
         originalUrl,
         createdByIp: ip,
         userAgent,
-        ...(userId ? { userId } : {}),
+        uuid,
       },
     });
 
@@ -77,7 +75,6 @@ export async function POST(request: Request) {
       slug: link.slug,
       shortUrl: `${BASE_URL}/${link.slug}`,
     });
-    /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
   } catch (error) {
     console.error("Error shortening URL:", error);
     return Response.json({ error: "Failed to shorten URL" }, { status: 500 });

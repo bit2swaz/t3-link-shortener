@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
-import { LogOut, Plus, ExternalLink, Copy, Loader2 } from "lucide-react";
+import { Plus, ExternalLink, Copy, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface Link {
@@ -19,7 +18,7 @@ interface Link {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  // Anonymous dashboard: fetch links by UUID from localStorage
   const [links, setLinks] = useState<Link[]>([]);
   const [loading, setLoading] = useState(true);
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -27,26 +26,13 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchLinks = async () => {
       try {
-        if (status === "loading") return;
-
-        if (status === "unauthenticated") {
-          router.push("/auth/signin");
-          toast.error("Please sign in to access the dashboard");
-          return;
+        let uuid = localStorage.getItem("visitor_uuid");
+        if (!uuid) {
+          uuid = crypto.randomUUID();
+          localStorage.setItem("visitor_uuid", uuid);
         }
-
-        if (session?.user) {
-          toast.success(
-            `Welcome back, ${session.user.username ?? session.user.name ?? session.user.email}`,
-          );
-        }
-
-        // Fetch user's links
-        const response = await fetch("/api/links/user");
-        if (!response.ok) {
-          throw new Error("Failed to fetch links");
-        }
-
+        const response = await fetch(`/api/links?uuid=${uuid}`);
+        if (!response.ok) throw new Error("Failed to fetch links");
         const data = (await response.json()) as Link[];
         setLinks(data);
       } catch (error) {
@@ -56,14 +42,10 @@ export default function DashboardPage() {
         setLoading(false);
       }
     };
-
     void fetchLinks();
-  }, [router, session, status]);
+  }, [router]);
 
-  const handleSignOut = () => {
-    toast.success("Signed out successfully");
-    void signOut({ callbackUrl: "/" });
-  };
+  // No sign out for anonymous
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard
@@ -79,7 +61,7 @@ export default function DashboardPage() {
       });
   };
 
-  if (status === "loading" || loading) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-2">
@@ -90,18 +72,12 @@ export default function DashboardPage() {
     );
   }
 
-  if (status === "unauthenticated") {
-    return null;
-  }
-
   return (
     <div className="container mx-auto max-w-5xl py-8 px-4">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome, {session?.user?.username ?? session?.user?.name ?? session?.user?.email}
-          </p>
+          <p className="text-muted-foreground">Welcome to your anonymous dashboard!</p>
         </div>
         <div className="flex items-center gap-4">
           <Button asChild variant="outline">
@@ -110,10 +86,7 @@ export default function DashboardPage() {
               <span>Shorten New Link</span>
             </Link>
           </Button>
-          <Button variant="ghost" onClick={handleSignOut} className="flex items-center gap-2">
-            <LogOut size={16} />
-            <span>Sign Out</span>
-          </Button>
+          {/* No sign out button for anonymous */}
         </div>
       </div>
 
