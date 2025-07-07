@@ -1,0 +1,10 @@
+/src/app/api/auth/[...nextauth]/route.ts
+/src/app/api/auth/signup/route.ts
+/src/app/auth/signin/page.tsx
+/src/app/_components/post.tsx
+/src/app/api/links/user/route.ts
+/src/components/session-provider.tsx
+/src/middleware.ts
+/src/server/auth/config.ts
+/src/server/auth/index.ts
+/src/server/api/routers/post.ts
