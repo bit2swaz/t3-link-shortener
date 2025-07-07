@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 "use client";
 
@@ -7,7 +6,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Github, Mail, AlertCircle, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 function SignInForm() {
   const router = useRouter();
@@ -76,6 +75,7 @@ function SignInForm() {
         }
 
         toast.success("Signed in successfully!");
+        setLoading(false);
         router.push(callbackUrl);
       } else {
         // Sign in
@@ -95,6 +95,7 @@ function SignInForm() {
         }
 
         toast.success("Signed in successfully!");
+        setLoading(false);
         router.push(callbackUrl);
       }
     } catch (error) {
@@ -108,6 +109,7 @@ function SignInForm() {
 
   const handleSocialSignIn = (provider: string) => {
     console.log(`Attempting to sign in with ${provider}`);
+    setLoading(true);
     toast.info(`Redirecting to ${provider} for authentication...`);
     void signIn(provider, { callbackUrl });
   };
