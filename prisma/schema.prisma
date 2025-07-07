@@ -72,3 +72,12 @@ model VerificationToken {
 
     @@unique([identifier, token])
 }
+
+model Link {
+    id          String   @id @default(cuid())
+    slug        String   @unique
+    originalUrl String   @unique
+    createdAt   DateTime @default(now())
+    createdByIp String
+    userAgent   String
+}

@@ -12,6 +12,10 @@ export default async function Home() {
         <p className="text-lg text-muted-foreground">A link shortener built with the T3 stack</p>
 
         <div className="flex items-center gap-4">
+          <Button asChild variant="default">
+            <Link href="/shorten">Shorten a URL</Link>
+          </Button>
+
           {session ? (
             <div className="flex flex-col items-center gap-4">
               <p>Logged in as {session.user?.email}</p>
@@ -20,7 +24,7 @@ export default async function Home() {
               </Button>
             </div>
           ) : (
-            <Button asChild>
+            <Button asChild variant="outline">
               <Link href="/api/auth/signin">Sign in</Link>
             </Button>
           )}
