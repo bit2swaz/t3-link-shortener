@@ -1,8 +1,10 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import DiscordProvider from "next-auth/providers/discord";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import TwitterProvider from "next-auth/providers/twitter";
 
 import { comparePassword } from "~/lib/password";
 import { db } from "~/server/db";
@@ -17,15 +19,17 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      username?: string | null;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    username?: string | null;
+    // ...other properties
+    // role: UserRole;
+  }
 }
 
 /**
@@ -58,6 +62,7 @@ export const authConfig = {
               id: true,
               email: true,
               password: true,
+              username: true,
             },
           });
 
@@ -74,6 +79,7 @@ export const authConfig = {
           return {
             id: user.id,
             email: user.email,
+            username: user.username,
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -84,10 +90,57 @@ export const authConfig = {
     GitHubProvider({
       clientId: process.env.GITHUB_CLIENT_ID ?? "",
       clientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
+      profile(profile) {
+        return {
+          id: profile.id.toString(),
+          name: profile.name ?? profile.login,
+          email: profile.email,
+          image: profile.avatar_url,
+          username: profile.login,
+        };
+      },
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      profile(profile) {
+        const username = profile.email ? profile.email.split("@")[0] : null;
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          username,
+        };
+      },
+    }),
+    DiscordProvider({
+      clientId: process.env.DISCORD_CLIENT_ID ?? "",
+      clientSecret: process.env.DISCORD_CLIENT_SECRET ?? "",
+      profile(profile) {
+        return {
+          id: profile.id,
+          name: profile.username,
+          email: profile.email,
+          image: profile.avatar
+            ? `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`
+            : null,
+          username: profile.username,
+        };
+      },
+    }),
+    TwitterProvider({
+      clientId: process.env.TWITTER_CLIENT_ID ?? "",
+      clientSecret: process.env.TWITTER_CLIENT_SECRET ?? "",
+      profile(profile) {
+        return {
+          id: profile.data.id,
+          name: profile.data.name,
+          email: profile.data.email,
+          image: profile.data.profile_image_url,
+          username: profile.data.username,
+        };
+      },
     }),
     /**
      * ...add more providers here.
@@ -104,6 +157,7 @@ export const authConfig = {
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.username = user.username;
       }
       return token;
     },
@@ -111,6 +165,7 @@ export const authConfig = {
       if (token) {
         session.user.id = token.id as string;
         session.user.email = token.email!;
+        session.user.username = token.username as string | undefined;
       }
       return session;
     },

@@ -20,6 +20,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return new Response("Link not found", { status: 404 });
     }
 
+    // Increment click count
+    await db.link.update({
+      where: { id: link.id },
+      data: { clickCount: { increment: 1 } },
+    });
+
     // Redirect to the original URL
     return Response.redirect(link.originalUrl, 302);
     /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */

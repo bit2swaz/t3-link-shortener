@@ -8,6 +8,7 @@ import { db } from "~/server/db";
 const signupSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
+  username: z.string().min(3).max(20),
 });
 
 export async function POST(req: Request) {
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, password } = result.data;
+    const { email, password, username } = result.data;
     console.log("Validated email:", email);
 
     // Check if user already exists
@@ -52,6 +53,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User with this email already exists" }, { status: 409 });
     }
 
+    // Check if username is taken
+    const existingUsername = await db.user.findUnique({
+      where: { username },
+    });
+
+    if (existingUsername) {
+      console.log("Username already taken");
+      return NextResponse.json({ error: "Username already taken" }, { status: 409 });
+    }
+
     // Hash the password
     console.log("Hashing password");
     const hashedPassword = await hashPassword(password);
@@ -61,11 +72,13 @@ export async function POST(req: Request) {
     const user = await db.user.create({
       data: {
         email,
+        username,
         password: hashedPassword,
       },
       select: {
         id: true,
         email: true,
+        username: true,
         createdAt: true,
       },
     });

@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
 // Base URL for the shortened links
@@ -11,6 +12,10 @@ interface ShortenRequest {
 
 export async function POST(request: Request) {
   try {
+    // Get the authenticated user (if any)
+    const session = await auth();
+    const userId = session?.user?.id;
+
     const body = (await request.json()) as ShortenRequest;
     const { originalUrl, slug: customSlug } = body;
 
@@ -63,6 +68,7 @@ export async function POST(request: Request) {
         originalUrl,
         createdByIp: ip,
         userAgent,
+        ...(userId ? { userId } : {}),
       },
     });
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { Button } from "~/components/ui/button";
+import toast from "react-hot-toast";
 
 interface ShortenedLink {
   originalUrl: string;
@@ -58,11 +59,13 @@ export default function ShortenPage() {
 
       if (!response.ok) {
         setError(data.error ?? "Failed to shorten URL");
+        toast.error(data.error ?? "Failed to shorten URL");
         return;
       }
 
       if (data.shortUrl) {
         setShortUrl(data.shortUrl);
+        toast.success("URL shortened successfully!");
 
         // Save to localStorage
         const newLink: ShortenedLink = {
@@ -78,6 +81,7 @@ export default function ShortenPage() {
       }
     } catch (err) {
       setError("An error occurred while shortening the URL");
+      toast.error("An error occurred while shortening the URL");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -88,10 +92,10 @@ export default function ShortenPage() {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        // You could add a toast notification here if you want
-        console.log("URL copied to clipboard");
+        toast.success("URL copied to clipboard!");
       })
       .catch((err) => {
+        toast.error("Failed to copy URL");
         console.error("Failed to copy URL:", err);
       });
   };
