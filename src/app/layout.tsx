@@ -5,7 +5,7 @@ import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { ToastProvider } from "~/components/toast-provider";
-import { SessionProvider } from "~/components/session-provider";
+import { SessionProvider } from "../components/session-provider";
 
 export const metadata: Metadata = {
   title: "T3 Link Shortener",
