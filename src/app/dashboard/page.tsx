@@ -4,8 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { auth } from "~/server/auth";
+import { signOut, useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { LogOut, Plus, ExternalLink, Copy, Loader2 } from "lucide-react";
@@ -21,30 +20,27 @@ interface Link {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [links, setLinks] = useState<Link[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{
-    name?: string | null;
-    email?: string | null;
-    username?: string | null;
-  } | null>(null);
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUserAndLinks = async () => {
+    const fetchLinks = async () => {
       try {
-        // Fetch user data
-        const session = await auth();
-        if (!session?.user) {
+        if (status === "loading") return;
+
+        if (status === "unauthenticated") {
           router.push("/auth/signin");
           toast.error("Please sign in to access the dashboard");
           return;
         }
 
-        setUser(session.user);
-        toast.success(
-          `Welcome back, ${session.user.username ?? session.user.name ?? session.user.email}`,
-        );
+        if (session?.user) {
+          toast.success(
+            `Welcome back, ${session.user.username ?? session.user.name ?? session.user.email}`,
+          );
+        }
 
         // Fetch user's links
         const response = await fetch("/api/links/user");
@@ -62,8 +58,8 @@ export default function DashboardPage() {
       }
     };
 
-    void fetchUserAndLinks();
-  }, [router]);
+    void fetchLinks();
+  }, [router, session, status]);
 
   const handleSignOut = () => {
     toast.success("Signed out successfully");
@@ -84,7 +80,7 @@ export default function DashboardPage() {
       });
   };
 
-  if (loading) {
+  if (status === "loading" || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-2">
@@ -95,13 +91,17 @@ export default function DashboardPage() {
     );
   }
 
+  if (status === "unauthenticated") {
+    return null; // Will be redirected by the useEffect
+  }
+
   return (
     <div className="container mx-auto max-w-5xl py-8 px-4">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome, {user?.username ?? user?.name ?? user?.email}
+            Welcome, {session?.user?.username ?? session?.user?.name ?? session?.user?.email}
           </p>
         </div>
         <div className="flex items-center gap-4">

@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth } from "~/server/auth";
 
 export async function middleware(request: NextRequest) {
-  const session = await auth();
-
   // Check if the user is authenticated for protected routes
   if (request.nextUrl.pathname.startsWith("/dashboard")) {
-    if (!session) {
+    // Check for session token
+    const sessionToken =
+      request.cookies.get("next-auth.session-token") ??
+      request.cookies.get("__Secure-next-auth.session-token");
+
+    if (!sessionToken) {
       const signInUrl = new URL("/auth/signin", request.url);
       signInUrl.searchParams.set("callbackUrl", request.nextUrl.pathname);
       return NextResponse.redirect(signInUrl);
