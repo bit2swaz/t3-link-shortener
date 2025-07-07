@@ -1,31 +1,30 @@
 import "~/styles/globals.css";
 
-import { type Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 
 import { TRPCReactProvider } from "~/trpc/react";
-import { ToastProvider } from "~/components/toast-provider";
 import { SessionProvider } from "../components/session-provider";
 
-export const metadata: Metadata = {
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+export const metadata = {
   title: "T3 Link Shortener",
-  description: "A powerful link shortener built with the T3 stack",
+  description: "A simple link shortener built with the T3 stack",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-});
-
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable}`}>
-      <body>
+    <html lang="en">
+      <body className={`font-sans ${inter.variable}`}>
         <TRPCReactProvider>
           <SessionProvider>
             {children}
-            <ToastProvider />
+            <Toaster position="top-center" />
           </SessionProvider>
         </TRPCReactProvider>
       </body>
