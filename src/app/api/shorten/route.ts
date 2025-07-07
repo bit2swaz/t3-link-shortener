@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
     // Get or generate per-visitor UUID
     let uuid = request.headers.get("x-visitor-uuid");
-    if (!uuid) uuid = crypto.randomUUID();
+    uuid ??= crypto.randomUUID();
     // Store in database
     const link = await db.link.create({
       data: {
