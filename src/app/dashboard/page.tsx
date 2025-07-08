@@ -1,0 +1,172 @@
+"use client";
+
+import { useState } from "react";
+import { type User } from "@supabase/supabase-js"; // Assuming User type from Supabase
+import { useAuth } from "~/context/AuthContext";
+import { Navbar } from "~/components/layout/navbar"; // Assuming Navbar component exists
+import { Button } from "~/components/ui/button";
+import { useToast } from "~/components/ui/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { api } from "~/trpc/react";
+import { Spinner } from "~/components/ui/spinner"; // Assuming a Spinner component
+
+export default function DashboardPage() {
+  const { user, loadingAuth, isAuthReady, setUser } = useAuth();
+  const { toast } = useToast();
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+
+  const updateUsernameMutation = api.user.updateUsername.useMutation({
+    onSuccess: (data) => {
+      if (user) {
+        setUser({ ...user, username: newUsername });
+        toast({
+          title: "Success!",
+          description: `Welcome, ${newUsername}!`,
+        });
+        setShowUsernameModal(false);
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description:
+          error.message || "Failed to set username. It might be taken.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCopyToken = async () => {
+    if (user?.id) {
+      try {
+        await navigator.clipboard.writeText(user.id);
+        toast({
+          title: "Token copied!",
+          description: "Your unique token has been copied to clipboard.",
+        });
+      } catch (err) {
+        console.error("Failed to copy token:", err);
+        toast({
+          title: "Copy failed",
+          description: "Could not copy token to clipboard.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleSaveUsername = () => {
+    if (newUsername.trim() && user?.id) {
+      updateUsernameMutation.mutate({ username: newUsername.trim() });
+    }
+  };
+
+  // Show username modal if user is ready and has no username
+  if (isAuthReady && user && user.username === null && !showUsernameModal) {
+    setShowUsernameModal(true);
+  }
+
+  if (loadingAuth || !isAuthReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-neutral-900 text-neutral-50">
+        <Spinner className="h-8 w-8 text-purple-600" />
+        <p className="ml-4 text-lg">Loading Dashboard...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-neutral-900 text-neutral-50">
+      <Navbar />
+      <main className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between">
+          <h1 className="text-4xl font-bold">
+            Welcome, {user?.username ?? "Guest"}!
+          </h1>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={handleCopyToken}
+              className="rounded-md bg-purple-600 text-neutral-50 hover:bg-purple-700"
+            >
+              Copy Token
+            </Button>
+            <span
+              onClick={() =>
+                toast({
+                  title: "Token Information",
+                  description:
+                    "Your token allows you to recover your account and links on other devices.",
+                })
+              }
+              className="cursor-pointer text-purple-600 hover:text-purple-700"
+            >
+              ?
+            </span>
+            <Button
+              disabled // Placeholder for Phase 6
+              className="rounded-md bg-neutral-800 text-neutral-50 hover:bg-neutral-700"
+            >
+              Recover Account
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-8 md:grid-cols-2">
+          <div className="rounded-md bg-neutral-800 p-6 shadow-lg">
+            <h3 className="mb-4 text-2xl font-semibold text-neutral-50">
+              Shorten a New URL
+            </h3>
+            <p className="text-neutral-300">
+              {/* Placeholder for link shortening form */}
+              Form goes here...
+            </p>
+          </div>
+
+          <div className="rounded-md bg-neutral-800 p-6 shadow-lg">
+            <h3 className="mb-4 text-2xl font-semibold text-neutral-50">
+              Your Shortened Links
+            </h3>
+            <p className="text-neutral-300">
+              {/* Placeholder for list of shortened links */}
+              Links list goes here...
+            </p>
+          </div>
+        </div>
+      </main>
+
+      {/* Username Prompt Dialog */}
+      <Dialog open={showUsernameModal && user?.username === null}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Welcome to T3 Link Shortener!</DialogTitle>
+            <DialogDescription>
+              What would you like us to call you? This username will be
+              displayed on your dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            placeholder="Enter your username"
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+            className="mt-4 rounded-md border-neutral-600 bg-neutral-700 text-neutral-50 focus:border-purple-600"
+          />
+          <Button
+            onClick={handleSaveUsername}
+            className="mt-4 rounded-md bg-purple-600 text-neutral-50 hover:bg-purple-700"
+            disabled={updateUsernameMutation.isLoading}
+          >
+            {updateUsernameMutation.isLoading ? "Saving..." : "Save Username"}
+          </Button>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
