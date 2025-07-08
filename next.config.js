@@ -5,10 +5,6 @@
 await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
-const config = {
-    experimental: {
-        useLightningcss: true,
-    }
-};
+const config = {};
 
 export default config;
