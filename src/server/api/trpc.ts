@@ -10,6 +10,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { createAdminClient } from "~/lib/supabase/admin";
 
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
@@ -26,7 +27,16 @@ import { db } from "~/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+const createInnerTRPCContext = (opts: { headers: Headers }) => {
+  const supabase = createAdminClient();
+  return {
+    db,
+    supabase,
+    ...opts,
+  };
+};
+
+export const createTRPCContext = async (opts: { req: Request }) => {
   const session = await auth();
 
   return {
