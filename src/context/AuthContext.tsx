@@ -9,10 +9,7 @@ import React, {
   type SetStateAction,
   type Dispatch,
 } from "react";
-import {
-  type SupabaseClient,
-  type User as SupabaseUser,
-} from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
 
 import { createBrowserClient } from "~/lib/supabase";
 
