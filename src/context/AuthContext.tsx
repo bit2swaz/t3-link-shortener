@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { type SupabaseClient } from "@supabase/supabase-js";
 
-import { createBrowserClient } from "~/lib/supabase";
+import { createBrowserClient } from "~/lib/supabase/client";
 
 type User = {
   id: string;
