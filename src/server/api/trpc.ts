@@ -60,6 +60,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 /**
  * 3. ROUTER & PROCEDURE (THE !)*/
 export const createTRPCRouter = t.router;
+export const createCallerFactory = t.createCallerFactory;
 
 /**
  * Public (unauthenticated) procedure
