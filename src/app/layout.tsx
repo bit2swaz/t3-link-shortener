@@ -24,7 +24,7 @@ export default function RootLayout({
       className={`${GeistSans.variable} dark`}
       suppressHydrationWarning
     >
-      <body className="bg-background text-foreground">
+      <body className="bg-neutral-950 font-sans text-neutral-50">
         <AuthProvider>
           <TRPCReactProvider>{children}</TRPCReactProvider>
           <Toaster />
