@@ -35,29 +35,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    const checkUser = async () => {
       setLoadingAuth(true);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session) {
         setUser({ id: session.user.id, username: null });
       } else {
-        void supabase.auth.signInAnonymously();
-      }
-      setLoadingAuth(false);
-      setIsAuthReady(true);
-    });
-
-    const checkInitialSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        await supabase.auth.signInAnonymously();
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if (error) {
+          console.error("Error signing in anonymously:", error);
+        } else if (data.user) {
+          setUser({ id: data.user.id, username: null });
+        }
       }
       setLoadingAuth(false);
       setIsAuthReady(true);
     };
 
-    void checkInitialSession();
+    void checkUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser({ id: session.user.id, username: null });
+      } else {
+        setUser(null);
+      }
+    });
 
     return () => {
       subscription.unsubscribe();

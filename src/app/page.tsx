@@ -13,10 +13,10 @@ export default function HomePage() {
           <h1 className="animate-slide-in-down text-5xl font-extrabold tracking-tight sm:text-[5rem]">
             Shorten. <span className="text-purple-600">Share.</span> Track.
           </h1>
-          <p className="animate-fade-in fill-mode-backwards text-2xl text-white/80 [animation-delay:0.5s]">
+          <p className="animate-fade-in text-2xl text-white/80 delay-500">
             Your personal link shortener, powered by the T3 Stack.
           </p>
-          <div className="animate-bounce-in fill-mode-backwards [animation-delay:1s]">
+          <div className="animate-bounce-in delay-1000">
             <Link href="/dashboard" passHref>
               <Button size="lg">Get Started</Button>
             </Link>
