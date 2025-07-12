@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 // import { type User } from "@supabase/supabase-js"; // Assuming User type from Supabase
 import { useAuth } from "~/context/AuthContext";
 import Navbar from "~/components/Navbar"; // Corrected import to default
@@ -29,11 +27,24 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [showUsernameModal, setShowUsernameModal] = useState(false);
   const [newUsername, setNewUsername] = useState("");
+  const [usernameFromLocalStorage, setUsernameFromLocalStorage] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUsername = localStorage.getItem("t3-link-shortener-username");
+      if (storedUsername) {
+        setUsernameFromLocalStorage(storedUsername);
+      }
+    }
+  }, []);
 
   const updateUsernameMutation = api.user.updateUsername.useMutation({
     onSuccess: (_data: RouterOutputs["user"]["updateUsername"]) => {
       if (user) {
         setUser({ ...user, username: newUsername });
+        localStorage.setItem("t3-link-shortener-username", newUsername);
         toast.success(`Welcome, ${newUsername}!`);
         setShowUsernameModal(false);
       }
@@ -63,8 +74,14 @@ export default function DashboardPage() {
     }
   };
 
-  // Show username modal if user is ready and has no username
-  if (isAuthReady && user && user.username === null && !showUsernameModal) {
+  // Show username modal if user is ready and has no username AND no username in local storage
+  if (
+    isAuthReady &&
+    user &&
+    user.username === null &&
+    !usernameFromLocalStorage &&
+    !showUsernameModal
+  ) {
     setShowUsernameModal(true);
   }
 
@@ -83,7 +100,7 @@ export default function DashboardPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between">
           <h1 className="text-4xl font-bold">
-            Welcome, {user?.username ?? "Guest"}!
+            Welcome, {user?.username ?? usernameFromLocalStorage ?? "Guest"}!
           </h1>
           <div className="flex items-center space-x-2">
             <Button
@@ -135,7 +152,13 @@ export default function DashboardPage() {
       </main>
 
       {/* Username Prompt Dialog */}
-      <Dialog open={showUsernameModal && user?.username === null}>
+      <Dialog
+        open={
+          showUsernameModal &&
+          user?.username === null &&
+          !usernameFromLocalStorage
+        }
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Welcome to T3 Link Shortener!</DialogTitle>
