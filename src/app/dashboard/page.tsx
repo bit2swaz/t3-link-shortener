@@ -21,6 +21,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 // import { type TRPCClientError } from "@trpc/client";
 // import { type AppRouter } from "~/server/api/root";
 import { Spinner } from "~/components/ui/spinner"; // Assuming a Spinner component
+import ShortenForm from "~/components/ShortenForm";
 
 export default function DashboardPage() {
   const { user, loadingAuth, isAuthReady, setUser } = useAuth();
@@ -30,6 +31,30 @@ export default function DashboardPage() {
   const [usernameFromLocalStorage, setUsernameFromLocalStorage] = useState<
     string | null
   >(null);
+
+  const utils = api.useUtils();
+
+  const { data: userProfile, isLoading: isLoadingProfile } =
+    api.user.getProfile.useQuery(
+      undefined, // No input needed for getProfile
+      {
+        enabled: !!user?.id, // Only fetch if user is authenticated
+      },
+    );
+
+  const lifetimeLimit = 100; // Example limit, consider making this configurable
+  const dailyLimit = 10; // Example limit, consider making this configurable
+
+  const linkLimitExceeded =
+    (userProfile?.totalLinksCreated ?? 0) >= lifetimeLimit;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dailyLimitExceeded =
+    (userProfile?.dailyShortenCount ?? 0) >= dailyLimit &&
+    !!userProfile?.lastShortenDate &&
+    new Date(userProfile.lastShortenDate).toDateString() ===
+      today.toDateString();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -45,12 +70,18 @@ export default function DashboardPage() {
       if (user) {
         setUser({ ...user, username: newUsername });
         localStorage.setItem("t3-link-shortener-username", newUsername);
-        toast.success(`Welcome, ${newUsername}!`);
+        toast({
+          title: `Welcome, ${newUsername}!`,
+          variant: "default",
+        });
         setShowUsernameModal(false);
       }
     },
     onError: (error: any) => {
-      toast.error(`Error: ${error.message}`);
+      toast({
+        title: `Error: ${error.message}`,
+        variant: "destructive",
+      });
     },
   });
 
@@ -60,10 +91,16 @@ export default function DashboardPage() {
     if (user?.id) {
       try {
         await navigator.clipboard.writeText(user.id);
-        toast.success("Token copied to clipboard!");
+        toast({
+          title: "Token copied to clipboard!",
+          variant: "default",
+        });
       } catch (err) {
         console.error("Failed to copy token:", err);
-        toast.error("Could not copy token to clipboard.");
+        toast({
+          title: "Could not copy token to clipboard.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -72,6 +109,16 @@ export default function DashboardPage() {
     if (newUsername.trim() && user?.id) {
       updateUsernameMutation.mutate({ username: newUsername.trim() });
     }
+  };
+
+  const handleLinkShortened = (shortUrl: string) => {
+    // Optionally update user profile data here, or refetch
+    // For now, let's just refetch the profile to update counts
+    void utils.user.getProfile.invalidate();
+    toast({
+      title: `Your short link: ${shortUrl}`,
+      variant: "default",
+    });
   };
 
   // Show username modal if user is ready and has no username AND no username in local storage
@@ -85,7 +132,7 @@ export default function DashboardPage() {
     setShowUsernameModal(true);
   }
 
-  if (loadingAuth || !isAuthReady) {
+  if (loadingAuth || !isAuthReady || isLoadingProfile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-900 text-neutral-50">
         <Spinner className="h-8 w-8 text-purple-600" />
@@ -111,9 +158,11 @@ export default function DashboardPage() {
             </Button>
             <span
               onClick={() =>
-                toast(
-                  "Your token allows you to recover your account and links on other devices.",
-                )
+                toast({
+                  title:
+                    "Your token allows you to recover your account and links on other devices.",
+                  variant: "default",
+                })
               }
               className="cursor-pointer text-purple-600 hover:text-purple-700"
             >
@@ -133,10 +182,11 @@ export default function DashboardPage() {
             <h3 className="mb-4 text-2xl font-semibold text-neutral-50">
               Shorten a New URL
             </h3>
-            <p className="text-neutral-300">
-              {/* Placeholder for link shortening form */}
-              Form goes here...
-            </p>
+            <ShortenForm
+              onLinkShortened={handleLinkShortened}
+              linkLimitExceeded={linkLimitExceeded}
+              dailyLimitExceeded={dailyLimitExceeded}
+            />
           </div>
 
           <div className="rounded-md bg-neutral-800 p-6 shadow-lg">

@@ -6,11 +6,23 @@ import { toast as hotToast } from "react-hot-toast";
 
 export const useToast = () => {
   return {
-    toast: hotToast,
-    // You can also expose other hotToast methods directly if needed
-    // success: hotToast.success,
-    // error: hotToast.error,
-    // loading: hotToast.loading,
-    // custom: hotToast.custom,
+    toast: ({
+      title,
+      description,
+      variant,
+    }: {
+      title?: string;
+      description?: string;
+      variant?: "default" | "destructive";
+    }) => {
+      const message = title ?? ""; // Use nullish coalescing
+      const fullMessage = description ? `${message}: ${description}` : message; // Combine title and description
+
+      if (variant === "destructive") {
+        hotToast.error(fullMessage);
+      } else {
+        hotToast.success(fullMessage);
+      }
+    },
   };
 };
