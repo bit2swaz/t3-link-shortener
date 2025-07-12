@@ -24,12 +24,22 @@ export const userRouter = createTRPCRouter({
         });
       }
 
-      const updatedUser = await ctx.db.user.update({
-        where: { id: ctx.userId },
-        data: { username: input.username },
+      // Check if a user with ctx.userId already exists.
+      // If it does, update the username. If not, create a new user with the given ID and username.
+      const upsertedUser = await ctx.db.user.upsert({
+        where: {
+          id: ctx.userId,
+        },
+        update: {
+          username: input.username,
+        },
+        create: {
+          id: ctx.userId,
+          username: input.username,
+        },
       });
 
-      return updatedUser;
+      return upsertedUser;
     }),
 
   getProfile: protectedProcedure.query(async ({ ctx }) => {
