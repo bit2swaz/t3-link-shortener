@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,6 +12,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -31,16 +29,44 @@ export default function DashboardPage() {
   const [usernameFromLocalStorage, setUsernameFromLocalStorage] = useState<
     string | null
   >(null);
+  const [showLinkCreatedToast, setShowLinkCreatedToast] = useState(false);
+  const [lastShortenedUrl, setLastShortenedUrl] = useState("");
 
   const utils = api.useUtils();
 
-  const { data: userProfile, isLoading: isLoadingProfile } =
-    api.user.getProfile.useQuery(
-      undefined, // No input needed for getProfile
-      {
-        enabled: !!user?.id, // Only fetch if user is authenticated
-      },
-    );
+  const {
+    data: userProfile,
+    isLoading: isLoadingProfile,
+    refetch: refetchUserProfile,
+  } = api.user.getProfile.useQuery(
+    undefined, // No input needed for getProfile
+    {
+      enabled: !!user?.id, // Only fetch if user is authenticated
+    },
+  );
+
+  const resetDailyCountMutation = api.user.resetDailyCount.useMutation({
+    onSuccess: () => {
+      void refetchUserProfile(); // Refetch user profile after reset
+    },
+    onError: (error) => {
+      toast({
+        title: "Error resetting daily count",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  useEffect(() => {
+    if (userProfile?.lastShortenDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (new Date(userProfile.lastShortenDate).getTime() < today.getTime()) {
+        void resetDailyCountMutation.mutateAsync();
+      }
+    }
+  }, [userProfile?.lastShortenDate, resetDailyCountMutation]);
 
   const lifetimeLimit = 100; // Example limit, consider making this configurable
   const dailyLimit = 10; // Example limit, consider making this configurable
@@ -77,7 +103,7 @@ export default function DashboardPage() {
         setShowUsernameModal(false);
       }
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: `Error: ${error.message}`,
         variant: "destructive",
@@ -115,6 +141,8 @@ export default function DashboardPage() {
     // Optionally update user profile data here, or refetch
     // For now, let's just refetch the profile to update counts
     void utils.user.getProfile.invalidate();
+    setLastShortenedUrl(shortUrl);
+    setShowLinkCreatedToast(true);
     toast({
       title: `Your short link: ${shortUrl}`,
       variant: "default",
@@ -200,6 +228,48 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+
+      {/* Shortened URL Dialog/Toast */}
+      <Dialog
+        open={showLinkCreatedToast}
+        onOpenChange={setShowLinkCreatedToast}
+      >
+        <DialogContent className="animate-fade-in animate-slide-in-up">
+          <DialogHeader>
+            <DialogTitle>Your Shortened URL!</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center space-y-4 py-4">
+            <a
+              href={lastShortenedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-lg font-medium break-all text-purple-400 underline hover:text-purple-500"
+            >
+              {lastShortenedUrl}
+            </a>
+            <Button
+              onClick={() => {
+                void navigator.clipboard.writeText(lastShortenedUrl);
+                toast({
+                  title: "Short URL copied to clipboard!",
+                  variant: "default",
+                });
+              }}
+              className="rounded-md bg-purple-600 text-neutral-50 hover:bg-purple-700"
+            >
+              Copy Short URL
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => setShowLinkCreatedToast(false)}
+              className="rounded-md bg-neutral-700 text-neutral-50 hover:bg-neutral-600"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Username Prompt Dialog */}
       <Dialog

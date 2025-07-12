@@ -68,4 +68,23 @@ export const userRouter = createTRPCRouter({
 
     return userProfile;
   }),
+
+  resetDailyCount: protectedProcedure.mutation(async ({ ctx }) => {
+    if (!ctx.userId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Not authenticated",
+      });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const updatedUser = await ctx.db.user.update({
+      where: { id: ctx.userId },
+      data: { dailyShortenCount: 0, lastShortenDate: today },
+    });
+
+    return updatedUser;
+  }),
 });
