@@ -17,7 +17,7 @@ export const linkRouter = createTRPCRouter({
     .input(
       z.object({
         longUrl: z.string().url(),
-        shortCode: z.string().optional(),
+        shortCode: z.string().min(3).max(20).optional(), // Updated schema
         expiryOption: z.enum([
           "1_day",
           "1_week",
@@ -48,61 +48,55 @@ export const linkRouter = createTRPCRouter({
       }
 
       // Check lifetime link limit
-      const lifetimeLimit = 100; // Example limit
+      const lifetimeLimit = 30; // Updated limit
       if (user.totalLinksCreated >= lifetimeLimit) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Lifetime link creation limit exceeded.",
+          message:
+            "You have reached your lifetime limit of 30 shortened links.",
         });
       }
 
-      // Check daily link limit
-      const dailyLimit = 10; // Example limit
+      // Check daily link limit (consider daily count as 0 if lastShortenDate is from previous day)
+      const dailyLimit = 5; // Updated limit
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      if (
-        user.lastShortenDate &&
-        user.lastShortenDate.getTime() < today.getTime()
-      ) {
-        // Reset daily count if it's a new day
-        await ctx.db.user.update({
-          where: { id: ctx.userId },
-          data: { dailyShortenCount: 0, lastShortenDate: today },
-        });
-        user.dailyShortenCount = 0;
-        user.lastShortenDate = today;
-      }
+      const effectiveDailyCount =
+        user.lastShortenDate && user.lastShortenDate.getTime() < today.getTime()
+          ? 0
+          : user.dailyShortenCount; // Daily count is reset on client via resetDailyCount
 
-      if (user.dailyShortenCount >= dailyLimit) {
+      if (effectiveDailyCount >= dailyLimit) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Daily link creation limit exceeded.",
+          message:
+            "You have reached your daily limit of 5 shortened links. Please try again tomorrow.",
         });
       }
 
-      let shortCode = input.shortCode;
-      if (shortCode) {
+      let finalShortCode = input.shortCode;
+      if (finalShortCode) {
         const existingSlug = await ctx.db.link.findUnique({
-          where: { shortCode },
+          where: { shortCode: finalShortCode },
         });
         if (existingSlug) {
           throw new TRPCError({
             code: "CONFLICT",
-            message: "Custom slug is already taken.",
+            message: "Custom slug is already taken. Please choose another.",
           });
         }
       } else {
-        shortCode = nanoid(7); // Generate a 7-character short code
+        finalShortCode = nanoid(7); // Generate a 7-character short code
         let isUnique = false;
         while (!isUnique) {
           const existingSlug = await ctx.db.link.findUnique({
-            where: { shortCode },
+            where: { shortCode: finalShortCode },
           });
           if (!existingSlug) {
             isUnique = true;
           } else {
-            shortCode = nanoid(7); // Regenerate if taken
+            finalShortCode = nanoid(7); // Regenerate if taken
           }
         }
       }
@@ -146,8 +140,10 @@ export const linkRouter = createTRPCRouter({
       const newLink = await ctx.db.link.create({
         data: {
           longUrl: input.longUrl,
-          shortCode: shortCode,
+          shortCode: finalShortCode,
           userId: ctx.userId,
+          clicks: 0, // Initialize clicks to 0
+          createdAt: new Date(), // Set creation date
           expiresAt: expiresAt,
         },
       });
@@ -158,12 +154,12 @@ export const linkRouter = createTRPCRouter({
         data: {
           totalLinksCreated: { increment: 1 },
           dailyShortenCount: { increment: 1 },
-          lastShortenDate: today, // Update lastShortenDate for the current day
+          lastShortenDate: new Date(), // Update lastShortenDate to now
         },
       });
 
       return {
-        shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/${newLink.shortCode}`,
+        shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/s/${newLink.shortCode}`,
       };
     }),
 });
