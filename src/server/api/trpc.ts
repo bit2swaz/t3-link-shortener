@@ -33,9 +33,24 @@ export const createTRPCContext = async () => {
     data: { user },
   } = await supabase.auth.getUser();
 
+  let userData = null;
+  if (user?.id) {
+    userData = await db.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        username: true,
+        totalLinksCreated: true,
+        dailyShortenCount: true,
+        lastShortenDate: true,
+      },
+    });
+  }
+
   return {
     db,
     userId: user?.id ?? null,
+    userData,
   };
 };
 
@@ -81,13 +96,14 @@ export const publicProcedure = t.procedure;
  * are authorized by specific roles.  The `ctx.session` will be populated, but `ctx.session.user` will not be.
  */
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.userId) {
+  if (!ctx.userId || !ctx.userData) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
       // infers the `session` as non-nullable
       userId: ctx.userId,
+      userData: ctx.userData,
     },
   });
 });
