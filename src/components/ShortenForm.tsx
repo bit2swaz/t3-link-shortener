@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -19,6 +15,14 @@ import { useToast } from "~/components/ui/use-toast";
 import { api } from "~/trpc/react";
 import { Spinner } from "./ui/spinner"; // Assuming a Spinner component exists
 
+type ExpiryOption =
+  | "1_day"
+  | "1_week"
+  | "1_month"
+  | "3_months"
+  | "1_year"
+  | "never";
+
 interface ShortenFormProps {
   onLinkShortened: (shortUrl: string) => void;
   linkLimitExceeded: boolean;
@@ -33,7 +37,7 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
   const { toast } = useToast();
   const [longUrl, setLongUrl] = useState<string>("");
   const [customSlug, setCustomSlug] = useState<string>("");
-  const [expiry, setExpiry] = useState<string>("1_day");
+  const [expiry, setExpiry] = useState<ExpiryOption>("1_day");
   const [loading, setLoading] = useState<boolean>(false);
   const [slugStatus, setSlugStatus] = useState<"available" | "taken" | null>(
     null,
@@ -42,7 +46,7 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
   const checkSlugAvailabilityMutation = api.link.checkSlugAvailability.useQuery(
     { slug: customSlug },
     {
-      enabled: !!customSlug,
+      enabled: !!customSlug, // Only run when customSlug is not empty
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       retry: false,
@@ -52,16 +56,7 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       if (customSlug) {
-        checkSlugAvailabilityMutation
-          .refetch()
-          .then((result: { data: { isAvailable: any } }) => {
-            if (result.data) {
-              setSlugStatus(result.data.isAvailable ? "available" : "taken");
-            }
-          })
-          .catch(() => {
-            setSlugStatus(null); // Or 'error' if you want to explicitly show an error state
-          });
+        void checkSlugAvailabilityMutation.refetch(); // Just trigger refetch
       } else {
         setSlugStatus(null);
       }
@@ -71,6 +66,20 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
       clearTimeout(handler);
     };
   }, [customSlug, checkSlugAvailabilityMutation]);
+
+  // Update slugStatus based on the data from the query
+  useEffect(() => {
+    if (checkSlugAvailabilityMutation.data) {
+      setSlugStatus(
+        checkSlugAvailabilityMutation.data.isAvailable ? "available" : "taken",
+      );
+    } else if (checkSlugAvailabilityMutation.isError) {
+      setSlugStatus(null); // Or 'error' if you want to explicitly show an error state
+    }
+  }, [
+    checkSlugAvailabilityMutation.data,
+    checkSlugAvailabilityMutation.isError,
+  ]);
 
   const createLinkMutation = api.link.create.useMutation({
     onSuccess: (data: { shortUrl: string }) => {
@@ -84,7 +93,7 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
         description: data.shortUrl,
       });
     },
-    onError: (error: { message: any }) => {
+    onError: (error) => {
       toast({
         title: "Error shortening link",
         description: error.message,
@@ -197,7 +206,10 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
         <Label htmlFor="expiry" className="text-neutral-300">
           Expiry
         </Label>
-        <Select value={expiry} onValueChange={setExpiry}>
+        <Select
+          value={expiry}
+          onValueChange={(value: ExpiryOption) => setExpiry(value)}
+        >
           <SelectTrigger className="mt-1 rounded-md border-neutral-600 bg-neutral-700 text-neutral-50 focus:border-purple-600">
             <SelectValue placeholder="Select expiry" />
           </SelectTrigger>
