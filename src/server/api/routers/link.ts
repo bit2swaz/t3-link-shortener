@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { nanoid } from "nanoid";
 
@@ -178,21 +182,21 @@ export const linkRouter = createTRPCRouter({
     return links;
   }),
 
-  redirect: protectedProcedure
+  redirect: publicProcedure
     .input(z.object({ shortCode: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      const link = await ctx.db.link.findUnique({
+      const foundLink = await ctx.db.link.findFirst({
         where: { shortCode: input.shortCode },
       });
 
-      if (!link) {
+      if (!foundLink) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Link not found.",
         });
       }
 
-      if (link.expiresAt && new Date() > link.expiresAt) {
+      if (foundLink.expiresAt && new Date(foundLink.expiresAt) < new Date()) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Link has expired.",
@@ -201,10 +205,10 @@ export const linkRouter = createTRPCRouter({
 
       // Increment click count
       await ctx.db.link.update({
-        where: { id: link.id },
+        where: { id: foundLink.id },
         data: { clicks: { increment: 1 } },
       });
 
-      return { longUrl: link.longUrl };
+      return { longUrl: foundLink.longUrl };
     }),
 });
