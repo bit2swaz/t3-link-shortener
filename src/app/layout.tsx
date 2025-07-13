@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import "~/styles/globals.css";
 
 import { type Metadata } from "next";
@@ -7,6 +6,7 @@ import { GeistSans } from "geist/font/sans";
 import { TRPCReactProvider } from "~/trpc/react";
 import { AuthProvider } from "~/context/AuthContext";
 import { Toaster } from "~/components/ui/toaster";
+import Footer from "~/components/Footer";
 
 export const metadata: Metadata = {
   title: "T3 Link Shortener",
@@ -30,6 +30,7 @@ export default function RootLayout({
           <TRPCReactProvider>{children}</TRPCReactProvider>
           <Toaster />
         </AuthProvider>
+        <Footer />
       </body>
     </html>
   );
