@@ -162,4 +162,19 @@ export const linkRouter = createTRPCRouter({
         shortUrl: `${process.env.NEXT_PUBLIC_APP_URL}/s/${newLink.shortCode}`,
       };
     }),
+
+  getAll: protectedProcedure.query(async ({ ctx }) => {
+    if (!ctx.userId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Not authenticated",
+      });
+    }
+
+    const links = await ctx.db.link.findMany({
+      where: { userId: ctx.userId },
+      orderBy: { createdAt: "desc" },
+    });
+    return links;
+  }),
 });

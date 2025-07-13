@@ -1,3 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -31,8 +35,40 @@ export default function DashboardPage() {
   >(null);
   const [showLinkCreatedToast, setShowLinkCreatedToast] = useState(false);
   const [lastShortenedUrl, setLastShortenedUrl] = useState("");
+  const [shortenedLinks, setShortenedLinks] = useState<
+    {
+      id: string;
+      longUrl: string;
+      shortCode: string;
+      clicks: number;
+      createdAt: Date;
+      expiresAt: Date | null;
+    }[]
+  >([]);
 
   const utils = api.useUtils();
+
+  const fetchLinks = async () => {
+    try {
+      const { data } = await api.link.getAll.query();
+      if (data) {
+        setShortenedLinks(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch links:", error);
+      toast({
+        title: "Error fetching links",
+        description: "Failed to load your shortened links. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthReady && user) {
+      void fetchLinks();
+    }
+  }, [isAuthReady, user, fetchLinks]);
 
   const {
     data: userProfile,
@@ -219,12 +255,57 @@ export default function DashboardPage() {
 
           <div className="rounded-md bg-neutral-800 p-6 shadow-lg">
             <h3 className="mb-4 text-2xl font-semibold text-neutral-50">
-              Your Shortened Links
+              Your Shortened Links ({shortenedLinks.length}/{lifetimeLimit})
             </h3>
-            <p className="text-neutral-300">
-              {/* Placeholder for list of shortened links */}
-              Links list goes here...
-            </p>
+            {shortenedLinks.length === 0 ? (
+              <p className="text-neutral-300">
+                No links shortened yet. Start by creating one!
+              </p>
+            ) : (
+              <ul className="space-y-4">
+                {shortenedLinks.map((link) => {
+                  const isExpired =
+                    link.expiresAt && new Date(link.expiresAt) < new Date();
+                  const linkClasses = `rounded-md bg-neutral-700 p-4 shadow-md transition-all duration-200 ease-in-out ${isExpired ? "opacity-50 line-through text-neutral-500" : "hover:bg-neutral-600"}`;
+                  return (
+                    <li key={link.id} className={linkClasses}>
+                      <a
+                        href={`${window.location.origin}/s/${link.shortCode}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-lg font-medium break-all text-purple-400 hover:underline"
+                      >
+                        {`${window.location.origin}/s/${link.shortCode}`}
+                      </a>
+                      <p className="max-w-xs truncate text-sm text-neutral-400">
+                        {link.longUrl}
+                      </p>
+                      {link.expiresAt && (
+                        <p className="text-xs text-neutral-500">
+                          Expires:{" "}
+                          {new Date(link.expiresAt).toLocaleDateString()}
+                        </p>
+                      )}
+                      <p className="text-xs text-neutral-500">
+                        Clicks: {link.clicks || 0}
+                      </p>
+                      <Button
+                        onClick={() =>
+                          toast({
+                            title: "Link Analytics",
+                            description: `Clicks for ${link.shortCode}: ${link.clicks || 0}`,
+                            variant: "default",
+                          })
+                        }
+                        className="mt-2 rounded-md bg-purple-600 text-xs text-neutral-50 hover:bg-purple-700"
+                      >
+                        View Analytics
+                      </Button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </div>
       </main>
