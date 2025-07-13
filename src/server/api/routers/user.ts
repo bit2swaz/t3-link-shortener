@@ -88,7 +88,6 @@ export const userRouter = createTRPCRouter({
       return updatedUser;
     }),
 
-  // Temporary comment to force type regeneration
   recoverAccount: protectedProcedure
     .input(z.object({ oldToken: z.string().uuid("Invalid token format.") }))
     .mutation(async ({ ctx, input }) => {
