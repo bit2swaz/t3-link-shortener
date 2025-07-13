@@ -159,7 +159,7 @@ export const linkRouter = createTRPCRouter({
       });
 
       return {
-        shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/s/${newLink.shortCode}`,
+        shortUrl: `${process.env.NEXT_PUBLIC_APP_URL}/s/${newLink.shortCode}`,
       };
     }),
 });
