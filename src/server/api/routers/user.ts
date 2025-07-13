@@ -88,8 +88,9 @@ export const userRouter = createTRPCRouter({
       return updatedUser;
     }),
 
+  // Temporary comment to force type regeneration
   recoverAccount: protectedProcedure
-    .input(z.object({ oldToken: z.string().min(1) }))
+    .input(z.object({ oldToken: z.string().uuid("Invalid token format.") }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.userId) {
         throw new TRPCError({
@@ -113,26 +114,66 @@ export const userRouter = createTRPCRouter({
       if (oldUser.id === ctx.userId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Cannot recover account with current token.",
+          message: "This is your current account token.",
         });
       }
 
-      // Transfer links from old user to current user
-      await ctx.db.link.updateMany({
+      let mergedLinkCount = 0;
+      const oldLinks = await ctx.db.link.findMany({
         where: { userId: oldUser.id },
-        data: { userId: ctx.userId },
       });
 
-      // Delete the old user entry
+      for (const oldLink of oldLinks) {
+        const existingLinkForCurrentUser = await ctx.db.link.findFirst({
+          where: { userId: ctx.userId, shortCode: oldLink.shortCode },
+        });
+
+        if (!existingLinkForCurrentUser) {
+          await ctx.db.link.create({
+            data: {
+              longUrl: oldLink.longUrl,
+              shortCode: oldLink.shortCode,
+              clicks: oldLink.clicks,
+              userId: ctx.userId,
+              expiresAt: oldLink.expiresAt,
+              createdAt: oldLink.createdAt,
+            },
+          });
+          mergedLinkCount++;
+        }
+      }
+
+      // Update current user's username if the old user had one and the current user doesn't
+      // or if you always prefer the old username.
+      // For this implementation, we'll update if current user has no username or if the old username is different.
+      if (
+        oldUser.username &&
+        (ctx.userData?.username === null ||
+          oldUser.username !== ctx.userData?.username)
+      ) {
+        await ctx.db.user.update({
+          where: { id: ctx.userId },
+          data: { username: oldUser.username },
+        });
+      }
+
+      // Update current user's totalLinksCreated
+      if (mergedLinkCount > 0) {
+        await ctx.db.user.update({
+          where: { id: ctx.userId },
+          data: { totalLinksCreated: { increment: mergedLinkCount } },
+        });
+      }
+
+      // Optionally delete the old user entry after successfully merging links
+      // This should be done carefully, considering data retention policies.
       await ctx.db.user.delete({
         where: { id: oldUser.id },
       });
 
-      // After merging, update current user's profile to reflect new link counts
-      // This might involve recalculating totalLinksCreated and dailyShortenCount
-      // For simplicity, we will just return a success message for now.
-      // The frontend will invalidate queries to refetch data.
-
-      return { message: "Account recovered and links merged successfully!" };
+      return {
+        success: true,
+        message: "Account recovered and links merged successfully!",
+      };
     }),
 });
