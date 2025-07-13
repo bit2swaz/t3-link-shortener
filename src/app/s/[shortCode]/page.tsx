@@ -4,13 +4,13 @@ import { api } from "~/trpc/server"; // Import server-side tRPC
 import { TRPCError } from "@trpc/server"; // Import TRPCError for error handling
 
 interface ShortUrlPageProps {
-  params: {
+  params: Promise<{
     shortCode: string;
-  };
+  }>;
 }
 
 export default async function ShortUrlPage({ params }: ShortUrlPageProps) {
-  const { shortCode } = params;
+  const { shortCode } = await params; // Await params as it's now typed as a Promise
 
   if (!shortCode) {
     redirect("/link-status?message=Short%20URL%20not%20provided.");
