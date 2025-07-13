@@ -28,7 +28,7 @@ import { db } from "~/server/db";
  */
 export const createTRPCContext = async () => {
   const cookieStore = cookies();
-  const supabase = createServerClient(cookieStore);
+  const supabase = createServerClient(Promise.resolve(cookieStore));
   const {
     data: { user },
   } = await supabase.auth.getUser();
