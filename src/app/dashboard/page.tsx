@@ -22,6 +22,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 // import { type AppRouter } from "~/server/api/root"; // Reverted import
 import { Spinner } from "~/components/ui/spinner"; // Assuming a Spinner component
 import ShortenForm from "~/components/ShortenForm";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const { user, loadingAuth, isAuthReady, setUser } = useAuth();
@@ -254,47 +255,141 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-neutral-50">
+    <div className="flex min-h-screen flex-col bg-neutral-950 text-neutral-50">
       <Navbar />
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-bold">
-            Welcome, {user?.username ?? usernameFromLocalStorage ?? "Guest"}!
-          </h1>
-          <div className="flex items-center space-x-2">
-            <Button
-              onClick={handleCopyToken}
-              className="rounded-md bg-purple-600 text-neutral-50 hover:bg-purple-700"
-            >
-              Copy Token
-            </Button>
-            <Button
-              onClick={() => setShowRecoverModal(true)} // New Recover Account Button
-              className="rounded-md bg-purple-600 text-neutral-50 hover:bg-purple-700"
-            >
-              Recover Account
-            </Button>
+      <main className="container mx-auto flex-grow p-8">
+        <h1 className="animate-slide-up mb-8 text-4xl font-bold text-neutral-50">
+          Welcome to your Dashboard, {userProfile?.username ?? "User"}!
+        </h1>
+
+        <div className="mb-8 flex items-center justify-end space-x-4">
+          <Button
+            onClick={handleCopyToken}
+            className="rounded-md bg-neutral-800 px-4 py-2 text-sm text-neutral-200 transition-all duration-200 hover:scale-105 hover:bg-neutral-700 active:scale-98"
+          >
+            Copy Account Token
+          </Button>
+          <Button
+            onClick={() => setShowRecoverModal(true)}
+            className="rounded-md bg-neutral-800 px-4 py-2 text-sm text-neutral-200 transition-all duration-200 hover:scale-105 hover:bg-neutral-700 active:scale-98"
+          >
+            Recover Account
             <span
-              onClick={() =>
-                toast({
-                  title:
-                    "Your token allows you to recover your account and links on other devices.",
-                  variant: "default",
-                })
-              }
-              className="cursor-pointer text-purple-600 hover:text-purple-700"
+              className="ml-2 cursor-help text-neutral-400 transition-colors duration-200 hover:text-purple-400"
+              title="If you log in from a new device, use this token to recover your links."
             >
               ?
             </span>
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+          <div className="animate-fade-in rounded-lg border border-neutral-800 bg-neutral-900 p-8 shadow-xl">
+            <h2 className="mb-6 text-2xl font-semibold text-neutral-50">
+              Shorten a New Link
+            </h2>
+            <ShortenForm
+              onLinkShortened={handleLinkShortened}
+              linkLimitExceeded={linkLimitExceeded}
+              dailyLimitExceeded={dailyLimitExceeded}
+            />
+          </div>
+
+          <div className="animate-fade-in rounded-lg border border-neutral-800 bg-neutral-900 p-8 shadow-xl">
+            <h2 className="mb-6 text-2xl font-semibold text-neutral-50">
+              Your Shortened Links ({shortenedLinks?.length ?? 0}/
+              {lifetimeLimit})
+            </h2>
+            {isLoadingLinks ? (
+              <Spinner className="h-8 w-8 text-purple-600" />
+            ) : shortenedLinks && shortenedLinks.length > 0 ? (
+              <div className="space-y-4">
+                {shortenedLinks.map((link) => (
+                  <div
+                    key={link.id}
+                    className={`flex transform items-center justify-between rounded-lg bg-neutral-800 p-5 transition-all duration-200 hover:scale-[1.01] hover:bg-neutral-700 hover:shadow-lg ${link.expiresAt && new Date(link.expiresAt) < new Date() ? "pointer-events-none text-neutral-500 line-through opacity-50" : ""}`}
+                  >
+                    <div>
+                      <p className="font-semibold text-neutral-200">
+                        {link.longUrl}
+                      </p>
+                      <Link href={`/s/${link.shortCode}`} passHref>
+                        <span className="cursor-pointer text-purple-400 hover:underline">
+                          {`${window.location.origin}/s/${link.shortCode}`}
+                        </span>
+                      </Link>
+                      {link.expiresAt && (
+                        <p className="text-xs text-neutral-400">
+                          Expires:{" "}
+                          {new Date(link.expiresAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      onClick={() =>
+                        toast({
+                          title: "View analytics for this link",
+                          variant: "default",
+                        })
+                      }
+                      className="rounded-md bg-neutral-700 px-3 py-1 text-xs text-neutral-200 transition-all duration-200 hover:scale-105 hover:bg-neutral-600 active:scale-98"
+                    >
+                      View Analytics
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-neutral-400">
+                No links shortened yet. Shorten one now!
+              </p>
+            )}
           </div>
         </div>
 
+        {/* Username Modal */}
+        <Dialog open={showUsernameModal} onOpenChange={setShowUsernameModal}>
+          <DialogContent className="border border-neutral-800 bg-neutral-900 text-neutral-50">
+            <DialogHeader>
+              <DialogTitle className="text-neutral-50">
+                Choose a Username
+              </DialogTitle>
+              <DialogDescription className="text-neutral-400">
+                Pick a username to get started. You can change it later.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              placeholder="Your username"
+              value={newUsername}
+              onChange={(e) => setNewUsername(e.target.value)}
+              className="border-neutral-700 bg-neutral-800 text-neutral-50 transition-all duration-200 focus:border-purple-500 focus:ring-purple-500"
+            />
+            <DialogFooter>
+              <Button
+                onClick={handleSaveUsername}
+                disabled={isUsernameUpdating}
+                className="bg-purple-600 text-white hover:bg-purple-700"
+              >
+                {isUsernameUpdating ? (
+                  <>
+                    <Spinner className="mr-2 h-4 w-4" /> Saving...
+                  </>
+                ) : (
+                  "Save Username"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Recovery Account Modal */}
         <Dialog open={showRecoverModal} onOpenChange={setShowRecoverModal}>
-          <DialogContent>
+          <DialogContent className="border border-neutral-800 bg-neutral-900 text-neutral-50">
             <DialogHeader>
-              <DialogTitle>Recover Account</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-neutral-50">
+                Recover Account
+              </DialogTitle>
+              <DialogDescription className="text-neutral-400">
                 Enter your old token to recover your account and links. Your
                 current links will be merged.
               </DialogDescription>
@@ -303,6 +398,7 @@ export default function DashboardPage() {
               placeholder="Paste your old token here"
               value={recoverToken}
               onChange={(e) => setRecoverToken(e.target.value)}
+              className="border-neutral-700 bg-neutral-800 text-neutral-50 transition-all duration-200 focus:border-purple-500 focus:ring-purple-500"
             />
             <DialogFooter>
               <Button
@@ -322,77 +418,6 @@ export default function DashboardPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        <div className="mt-8 grid gap-8 md:grid-cols-2">
-          <div className="rounded-md bg-neutral-800 p-6 shadow-lg">
-            <h3 className="mb-4 text-2xl font-semibold text-neutral-50">
-              Shorten a New URL
-            </h3>
-            <ShortenForm
-              onLinkShortened={handleLinkShortened}
-              linkLimitExceeded={linkLimitExceeded}
-              dailyLimitExceeded={dailyLimitExceeded}
-            />
-          </div>
-
-          <div className="rounded-md bg-neutral-800 p-6 shadow-lg">
-            <h3 className="mb-4 text-2xl font-semibold text-neutral-50">
-              Your Shortened Links ({shortenedLinks?.length ?? 0}/
-              {lifetimeLimit})
-            </h3>
-            {isLoadingLinks ? (
-              <Spinner className="h-8 w-8 text-purple-600" />
-            ) : (shortenedLinks?.length ?? 0) === 0 ? (
-              <p className="text-neutral-300">
-                No links shortened yet. Start by creating one!
-              </p>
-            ) : (
-              <ul className="space-y-4">
-                {(shortenedLinks ?? []).map((link) => {
-                  const isExpired =
-                    link.expiresAt && new Date(link.expiresAt) < new Date();
-                  const linkClasses = `rounded-md bg-neutral-700 p-4 shadow-md transition-all duration-200 ease-in-out ${isExpired ? "opacity-50 line-through text-neutral-500" : "hover:bg-neutral-600"}`;
-                  return (
-                    <li key={link.id} className={linkClasses}>
-                      <a
-                        href={`${window.location.origin}/s/${link.shortCode}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block text-lg font-medium break-all text-purple-400 hover:underline"
-                      >
-                        {`${window.location.origin}/s/${link.shortCode}`}
-                      </a>
-                      <p className="max-w-xs truncate text-sm text-neutral-400">
-                        {link.longUrl}
-                      </p>
-                      {link.expiresAt && (
-                        <p className="text-xs text-neutral-500">
-                          Expires:{" "}
-                          {new Date(link.expiresAt).toLocaleDateString()}
-                        </p>
-                      )}
-                      <p className="text-xs text-neutral-500">
-                        Clicks: {link.clicks || 0}
-                      </p>
-                      <Button
-                        onClick={() =>
-                          toast({
-                            title: "Link Analytics",
-                            description: `Clicks for ${link.shortCode}: ${link.clicks || 0}`,
-                            variant: "default",
-                          })
-                        }
-                        className="mt-2 rounded-md bg-purple-600 text-xs text-neutral-50 hover:bg-purple-700"
-                      >
-                        View Analytics
-                      </Button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        </div>
       </main>
 
       {/* Shortened URL Dialog/Toast */}
@@ -434,38 +459,6 @@ export default function DashboardPage() {
               Close
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Username Prompt Dialog */}
-      <Dialog
-        open={
-          showUsernameModal &&
-          user?.username === null &&
-          !usernameFromLocalStorage
-        }
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Welcome to T3 Link Shortener!</DialogTitle>
-            <DialogDescription>
-              What would you like us to call you? This username will be
-              displayed on your dashboard.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            placeholder="Enter your username"
-            value={newUsername}
-            onChange={(e) => setNewUsername(e.target.value)}
-            className="mt-4 rounded-md border-neutral-600 bg-neutral-700 text-neutral-50 focus:border-purple-600"
-          />
-          <Button
-            onClick={handleSaveUsername}
-            className="mt-4 rounded-md bg-purple-600 text-neutral-50 hover:bg-purple-700"
-            disabled={isUsernameUpdating}
-          >
-            {isUsernameUpdating ? "Saving..." : "Save Username"}
-          </Button>
         </DialogContent>
       </Dialog>
     </div>
