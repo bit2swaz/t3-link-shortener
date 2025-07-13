@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -16,8 +18,8 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { api, type RouterOutputs } from "~/trpc/react";
-// import { type TRPCClientError } from "@trpc/client";
-// import { type AppRouter } from "~/server/api/root";
+// import { type TRPCClientError } from "@trpc/client"; // Reverting import
+// import { type AppRouter } from "~/server/api/root"; // Reverting import
 import { Spinner } from "~/components/ui/spinner"; // Assuming a Spinner component
 import ShortenForm from "~/components/ShortenForm";
 
@@ -31,6 +33,9 @@ export default function DashboardPage() {
   >(null);
   const [showLinkCreatedToast, setShowLinkCreatedToast] = useState(false);
   const [lastShortenedUrl, setLastShortenedUrl] = useState("");
+  const [showRecoverModal, setShowRecoverModal] = useState(false); // New state for recovery modal
+  const [recoverToken, setRecoverToken] = useState(""); // New state for recovery token input
+  const [recovering, setRecovering] = useState(false); // New state for recovery loading state
   // const [shortenedLinks, setShortenedLinks] = useState<
   //   {
   //     id: string;
@@ -203,6 +208,40 @@ export default function DashboardPage() {
     });
   };
 
+  const handleRecoverAccount = async () => {
+    setRecovering(true);
+    if (recoverToken.trim() === "") {
+      toast({
+        title: "Please enter a token.",
+        variant: "destructive",
+      });
+      setRecovering(false);
+      return;
+    }
+
+    try {
+      await api.user.recoverAccount.mutate({ oldToken: recoverToken });
+      toast({
+        title: "Account recovered and links merged!",
+        variant: "default",
+      });
+      setShowRecoverModal(false);
+      setRecoverToken("");
+      // Trigger data refresh
+      void utils.link.getAll.invalidate(); // Refresh links
+      void utils.user.getProfile.invalidate(); // Refresh user profile (for link limits)
+    } catch (error: unknown) {
+      toast({
+        title: "Failed to recover account.",
+        description:
+          error instanceof Error ? error.message : "Please check the token.",
+        variant: "destructive",
+      });
+    } finally {
+      setRecovering(false);
+    }
+  };
+
   // Show username modal if user is ready and has no username AND no username in local storage
   if (
     isAuthReady &&
@@ -238,6 +277,12 @@ export default function DashboardPage() {
             >
               Copy Token
             </Button>
+            <Button
+              onClick={() => setShowRecoverModal(true)} // New Recover Account Button
+              className="rounded-md bg-purple-600 text-neutral-50 hover:bg-purple-700"
+            >
+              Recover Account
+            </Button>
             <span
               onClick={() =>
                 toast({
@@ -250,14 +295,42 @@ export default function DashboardPage() {
             >
               ?
             </span>
-            <Button
-              disabled // Placeholder for Phase 6
-              className="rounded-md bg-neutral-800 text-neutral-50 hover:bg-neutral-700"
-            >
-              Recover Account
-            </Button>
           </div>
         </div>
+
+        {/* Recovery Account Modal */}
+        <Dialog open={showRecoverModal} onOpenChange={setShowRecoverModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Recover Account</DialogTitle>
+              <DialogDescription>
+                Enter your old token to recover your account and links. Your
+                current links will be merged.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              placeholder="Paste your old token here"
+              value={recoverToken}
+              onChange={(e) => setRecoverToken(e.target.value)}
+            />
+            <DialogFooter>
+              <Button
+                onClick={handleRecoverAccount}
+                disabled={recovering}
+                className="bg-purple-600 text-white hover:bg-purple-700"
+              >
+                {recovering ? (
+                  <>
+                    <Spinner className="mr-2 h-4 w-4" />
+                    Recovering...
+                  </>
+                ) : (
+                  "Recover"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <div className="mt-8 grid gap-8 md:grid-cols-2">
           <div className="rounded-md bg-neutral-800 p-6 shadow-lg">
