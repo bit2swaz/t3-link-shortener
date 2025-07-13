@@ -1,7 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -35,40 +31,40 @@ export default function DashboardPage() {
   >(null);
   const [showLinkCreatedToast, setShowLinkCreatedToast] = useState(false);
   const [lastShortenedUrl, setLastShortenedUrl] = useState("");
-  const [shortenedLinks, setShortenedLinks] = useState<
-    {
-      id: string;
-      longUrl: string;
-      shortCode: string;
-      clicks: number;
-      createdAt: Date;
-      expiresAt: Date | null;
-    }[]
-  >([]);
+  // const [shortenedLinks, setShortenedLinks] = useState<
+  //   {
+  //     id: string;
+  //     longUrl: string;
+  //     shortCode: string;
+  //     clicks: number;
+  //     createdAt: Date;
+  //     expiresAt: Date | null;
+  //   }[]
+  // >([]);
 
   const utils = api.useUtils();
 
-  const fetchLinks = async () => {
-    try {
-      const { data } = await api.link.getAll.query();
-      if (data) {
-        setShortenedLinks(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch links:", error);
-      toast({
-        title: "Error fetching links",
-        description: "Failed to load your shortened links. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+  // const fetchLinks = async () => {
+  //   try {
+  //     const { data } = await api.link.getAll.query();
+  //     if (data) {
+  //       setShortenedLinks(data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch links:", error);
+  //     toast({
+  //       title: "Error fetching links",
+  //       description: "Failed to load your shortened links. Please try again.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
 
-  useEffect(() => {
-    if (isAuthReady && user) {
-      void fetchLinks();
-    }
-  }, [isAuthReady, user, fetchLinks]);
+  // useEffect(() => {
+  //   if (isAuthReady && user) {
+  //     void fetchLinks();
+  //   }
+  // }, [isAuthReady, user, fetchLinks]);
 
   const {
     data: userProfile,
@@ -80,6 +76,28 @@ export default function DashboardPage() {
       enabled: !!user?.id, // Only fetch if user is authenticated
     },
   );
+
+  const {
+    data: shortenedLinks,
+    isLoading: isLoadingLinks,
+    isError: isErrorLinks,
+    error: linksError,
+  } = api.link.getAll.useQuery(
+    undefined, // No input needed for getAll
+    {
+      enabled: !!user?.id, // Only fetch if user is authenticated
+    },
+  );
+
+  useEffect(() => {
+    if (isErrorLinks && linksError) {
+      toast({
+        title: "Error fetching links",
+        description: `Failed to load your shortened links: ${linksError.message}`,
+        variant: "destructive",
+      });
+    }
+  }, [isErrorLinks, linksError, toast]);
 
   const resetDailyCountMutation = api.user.resetDailyCount.useMutation({
     onSuccess: () => {
@@ -255,15 +273,18 @@ export default function DashboardPage() {
 
           <div className="rounded-md bg-neutral-800 p-6 shadow-lg">
             <h3 className="mb-4 text-2xl font-semibold text-neutral-50">
-              Your Shortened Links ({shortenedLinks.length}/{lifetimeLimit})
+              Your Shortened Links ({shortenedLinks?.length ?? 0}/
+              {lifetimeLimit})
             </h3>
-            {shortenedLinks.length === 0 ? (
+            {isLoadingLinks ? (
+              <Spinner className="h-8 w-8 text-purple-600" />
+            ) : (shortenedLinks?.length ?? 0) === 0 ? (
               <p className="text-neutral-300">
                 No links shortened yet. Start by creating one!
               </p>
             ) : (
               <ul className="space-y-4">
-                {shortenedLinks.map((link) => {
+                {(shortenedLinks ?? []).map((link) => {
                   const isExpired =
                     link.expiresAt && new Date(link.expiresAt) < new Date();
                   const linkClasses = `rounded-md bg-neutral-700 p-4 shadow-md transition-all duration-200 ease-in-out ${isExpired ? "opacity-50 line-through text-neutral-500" : "hover:bg-neutral-600"}`;
