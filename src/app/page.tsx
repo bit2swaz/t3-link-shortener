@@ -8,17 +8,22 @@ export default function HomePage() {
   return (
     <>
       <Navbar />
-      <main className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center text-center">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-neutral-950 p-4 text-neutral-50">
         <div className="container flex flex-col items-center justify-center gap-6 px-4 py-16">
-          <h1 className="animate-slide-in-down text-5xl font-extrabold tracking-tight sm:text-[5rem]">
+          <h1 className="animate-fade-in mb-6 text-6xl font-extrabold text-purple-600">
             Shorten. <span className="text-purple-600">Share.</span> Track.
           </h1>
-          <p className="animate-fade-in text-2xl text-white/80 delay-500">
+          <p className="animate-fade-in mb-8 max-w-3xl text-xl text-neutral-300">
             Your personal link shortener, powered by the T3 Stack.
           </p>
-          <div className="animate-bounce-in delay-1000">
+          <div>
             <Link href="/dashboard" passHref>
-              <Button size="lg">Get Started</Button>
+              <Button
+                size="lg"
+                className="active:animate-button-press transform rounded-full bg-purple-600 px-10 py-4 font-bold text-white shadow-xl transition-all duration-300 ease-in-out hover:scale-105 hover:bg-purple-700"
+              >
+                Get Started
+              </Button>
             </Link>
           </div>
         </div>
