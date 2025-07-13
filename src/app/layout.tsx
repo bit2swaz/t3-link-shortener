@@ -28,7 +28,26 @@ export default function RootLayout({
       <body className="bg-background text-foreground font-sans">
         <AuthProvider>
           <TRPCReactProvider>{children}</TRPCReactProvider>
-          <Toaster />
+          <Toaster
+            toastOptions={{
+              style: {
+                background: "#171717", // neutral-900
+                color: "#f5f5f5", // neutral-50
+              },
+              success: {
+                style: {
+                  background: "#7C3AED", // purple-600
+                  color: "#ffffff",
+                },
+              },
+              error: {
+                style: {
+                  background: "#DC2626", // red-600
+                  color: "#ffffff",
+                },
+              },
+            }}
+          />
         </AuthProvider>
         <Footer />
       </body>
