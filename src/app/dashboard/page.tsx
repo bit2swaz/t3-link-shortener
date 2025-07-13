@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -36,16 +36,6 @@ export default function DashboardPage() {
   const [showRecoverModal, setShowRecoverModal] = useState(false); // New state for recovery modal
   const [recoverToken, setRecoverToken] = useState(""); // New state for recovery token input
   const [recovering, setRecovering] = useState(false); // New state for recovery loading state
-  // const [shortenedLinks, setShortenedLinks] = useState<
-  //   {
-  //     id: string;
-  //     longUrl: string;
-  //     shortCode: string;
-  //     clicks: number;
-  //     createdAt: Date;
-  //     expiresAt: Date | null;
-  //   }[]
-  // >([]);
 
   const utils = api.useUtils();
 
@@ -220,7 +210,8 @@ export default function DashboardPage() {
     }
 
     try {
-      await api.user.recoverAccount.mutate({ oldToken: recoverToken });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      await (api.user.recoverAccount as any).mutate({ oldToken: recoverToken });
       toast({
         title: "Account recovered and links merged!",
         variant: "default",
