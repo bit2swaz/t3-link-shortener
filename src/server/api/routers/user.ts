@@ -171,9 +171,7 @@ export const userRouter = createTRPCRouter({
         where: { id: oldUser.id },
       });
 
-      return {
-        success: true,
-        message: "Account recovered and links merged successfully!",
-      };
+      // Temporarily simplify return to debug type inference
+      return { message: "Success" };
     }),
 });
