@@ -67,7 +67,7 @@ const config = {
           950: "#0a0a0a",
         },
         purple: {
-          500: "#8B5CF6",
+          400: "#A78BFA",
           600: "#7C3AED",
           700: "#6D28D9",
         },
@@ -90,33 +90,46 @@ const config = {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
-        "slide-in-down": {
-          from: {
-            transform: "translateY(-20px)",
-            opacity: "0",
-          },
-          to: {
-            transform: "translateY(0)",
+        "slide-up": {
+          from: { transform: "translateY(20px)", opacity: "0" },
+          to: { transform: "translateY(0)", opacity: "1" },
+        },
+        "scale-in": {
+          from: { transform: "scale(0.95)", opacity: "0" },
+          to: { transform: "scale(1)", opacity: "1" },
+        },
+        "pulse-glow": {
+          "0%, 100%": {
             opacity: "1",
+            filter: "drop-shadow(0 0 1px var(--tw-shadow-color))",
+          },
+          "50%": {
+            opacity: "0.8",
+            filter: "drop-shadow(0 0 8px var(--tw-shadow-color))",
           },
         },
-        "bounce-in": {
-          "0%": {
-            transform: "scale(0.5)",
-            opacity: "0",
-          },
-          "100%": {
-            transform: "scale(1)",
-            opacity: "1",
-          },
+        "button-press": {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(0.98)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-out",
-        "slide-in-down": "slide-in-down 0.5s ease-out",
-        "bounce-in": "bounce-in 0.5s ease-out",
+        "slide-up": "slide-up 0.6s ease-out",
+        "scale-in": "scale-in 0.3s ease-out",
+        "pulse-glow": "pulse-glow 2s infinite ease-in-out",
+        "button-press": "button-press 0.1s ease-out",
+      },
+      transitionProperty: {
+        DEFAULT: "all",
+      },
+      transitionTimingFunction: {
+        DEFAULT: "ease-in-out",
+      },
+      transitionDuration: {
+        DEFAULT: "300ms",
       },
     },
   },
