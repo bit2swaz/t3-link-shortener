@@ -177,4 +177,34 @@ export const linkRouter = createTRPCRouter({
     });
     return links;
   }),
+
+  redirect: protectedProcedure
+    .input(z.object({ shortCode: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const link = await ctx.db.link.findUnique({
+        where: { shortCode: input.shortCode },
+      });
+
+      if (!link) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Link not found.",
+        });
+      }
+
+      if (link.expiresAt && new Date() > link.expiresAt) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Link has expired.",
+        });
+      }
+
+      // Increment click count
+      await ctx.db.link.update({
+        where: { id: link.id },
+        data: { clicks: { increment: 1 } },
+      });
+
+      return { longUrl: link.longUrl };
+    }),
 });
