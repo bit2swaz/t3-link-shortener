@@ -29,9 +29,6 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [showUsernameModal, setShowUsernameModal] = useState(false);
   const [newUsername, setNewUsername] = useState("");
-  const [usernameFromLocalStorage, setUsernameFromLocalStorage] = useState<
-    string | null
-  >(null);
   const [showLinkCreatedToast, setShowLinkCreatedToast] = useState(false);
   const [lastShortenedUrl, setLastShortenedUrl] = useState("");
   const [showRecoverModal, setShowRecoverModal] = useState(false); // New state for recovery modal
@@ -132,15 +129,6 @@ export default function DashboardPage() {
     new Date(userProfile.lastShortenDate).toDateString() ===
       today.toDateString();
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedUsername = localStorage.getItem("t3-link-shortener-username");
-      if (storedUsername) {
-        setUsernameFromLocalStorage(storedUsername);
-      }
-    }
-  }, []);
-
   const updateUsernameMutation = api.user.updateUsername.useMutation({
     onSuccess: (_data: RouterOutputs["user"]["updateUsername"]) => {
       if (user) {
@@ -234,16 +222,11 @@ export default function DashboardPage() {
     }
   };
 
-  // Show username modal if user is ready and has no username AND no username in local storage
-  if (
-    isAuthReady &&
-    user &&
-    user.username === null &&
-    !usernameFromLocalStorage &&
-    !showUsernameModal
-  ) {
-    setShowUsernameModal(true);
-  }
+  useEffect(() => {
+    if (isAuthReady && user && user.username === null && !showUsernameModal) {
+      setShowUsernameModal(true);
+    }
+  }, [isAuthReady, user, showUsernameModal]);
 
   if (loadingAuth || !isAuthReady || isLoadingProfile) {
     return (

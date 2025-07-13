@@ -42,7 +42,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } = await supabase.auth.getSession();
 
       if (session) {
-        setUser({ id: session.user.id, username: null });
+        const storedUsername = localStorage.getItem(
+          "t3-link-shortener-username",
+        );
+        setUser({ id: session.user.id, username: storedUsername ?? null });
       } else {
         const { data, error } = await supabase.auth.signInAnonymously();
         if (error) {
@@ -61,7 +64,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        setUser({ id: session.user.id, username: null });
+        const storedUsername = localStorage.getItem(
+          "t3-link-shortener-username",
+        );
+        setUser({ id: session.user.id, username: storedUsername ?? null });
       } else {
         setUser(null);
       }
