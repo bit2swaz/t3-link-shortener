@@ -14,12 +14,12 @@ const Navbar = () => {
         </Link>
         <div className="flex items-center space-x-6">
           <Link href="/" passHref>
-            <span className="cursor-pointer font-medium transition-colors duration-200 hover:text-purple-400">
+            <span className="transform cursor-pointer font-medium transition-colors duration-200 hover:scale-105 hover:text-purple-400">
               Homepage
             </span>
           </Link>
           <Link href="/dashboard" passHref>
-            <span className="cursor-pointer font-medium transition-colors duration-200 hover:text-purple-400">
+            <span className="transform cursor-pointer font-medium transition-colors duration-200 hover:scale-105 hover:text-purple-400">
               Dashboard
             </span>
           </Link>
