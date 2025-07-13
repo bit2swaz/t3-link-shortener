@@ -16,10 +16,10 @@ export function createServerClient(): SupabaseClient {
           return (await cookies()).get(name)?.value;
         },
         async set(name: string, value: string, options: CookieOptions) {
-          (await cookies()).set(name, value, options);
+          (await cookies()).set({ name, value, ...options });
         },
         async remove(name: string, options: CookieOptions) {
-          (await cookies()).delete(name, options);
+          (await cookies()).delete({ name, ...options });
         },
       },
     },

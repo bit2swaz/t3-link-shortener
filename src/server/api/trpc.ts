@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * YOU PROBABLY DON'T NEED TO EDIT THIS FILE, UNLESS:
  * 1. You want to modify request context (see Part 1).
@@ -28,7 +29,7 @@ import { db } from "~/server/db";
  */
 export const createTRPCContext = async () => {
   const cookieStore = cookies();
-  const supabase = createServerClient(Promise.resolve(cookieStore));
+  const supabase = createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
