@@ -178,7 +178,7 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
           value={longUrl}
           onChange={(e) => setLongUrl(e.target.value)}
           required
-          className="mt-1 rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500"
+          className="animate-pop-in mt-1 rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500"
         />
       </div>
 
@@ -192,7 +192,7 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
           placeholder="my-cool-link"
           value={customSlug}
           onChange={handleCustomSlugChange}
-          className="mt-1 rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500"
+          className="animate-pop-in mt-1 rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all delay-100 duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500"
         />
         {customSlug.length > 0 && slugStatus === "available" && (
           <p className="animate-fade-in mt-2 text-sm text-green-500">
@@ -214,10 +214,10 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
           value={expiry}
           onValueChange={(value: ExpiryOption) => setExpiry(value)}
         >
-          <SelectTrigger className="mt-1 rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500">
+          <SelectTrigger className="animate-pop-in w-full rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all delay-200 duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500">
             <SelectValue placeholder="Select expiry" />
           </SelectTrigger>
-          <SelectContent className="rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all duration-200 focus:border-purple-500 focus:ring-purple-500">
+          <SelectContent className="animate-pop-in rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-lg">
             <SelectItem value="1_day">1 Day</SelectItem>
             <SelectItem value="1_week">1 Week</SelectItem>
             <SelectItem value="1_month">1 Month</SelectItem>
@@ -230,17 +230,10 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
 
       <Button
         type="submit"
-        className="w-full transform rounded-md bg-purple-600 py-3 font-bold text-white shadow-lg transition-all duration-300 ease-in-out hover:scale-105 hover:bg-purple-700 active:scale-98"
+        className="animate-pop-in w-full bg-purple-600 text-white shadow-xl transition-all duration-300 ease-in-out hover:scale-105 hover:bg-purple-700 active:scale-98"
         disabled={isShortenButtonDisabled}
       >
-        {loading ? (
-          <>
-            <Spinner className="mr-3 h-5 w-5 animate-spin text-white" />{" "}
-            Shortening...
-          </>
-        ) : (
-          "Shorten URL"
-        )}
+        {loading ? <Spinner /> : "Shorten URL"}
       </Button>
 
       {linkLimitExceeded && (

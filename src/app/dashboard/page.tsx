@@ -37,6 +37,22 @@ export default function DashboardPage() {
 
   const utils = api.useUtils();
 
+  const handleCopy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied to clipboard!",
+        variant: "default",
+      });
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      toast({
+        title: "Could not copy to clipboard.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // const fetchLinks = async () => {
   //   try {
   //     const { data } = await api.link.getAll.query();
@@ -238,96 +254,113 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-950 text-neutral-50">
+    <>
       <Navbar />
-      <main className="container mx-auto flex-grow p-8">
-        <h1 className="animate-fade-in-down mb-8 text-3xl font-bold text-neutral-50 sm:text-4xl">
-          Welcome to your Dashboard, {userProfile?.username ?? "User"}!
-        </h1>
-
-        <div className="mb-8 flex items-center justify-end space-x-4">
-          <Button
-            onClick={handleCopyToken}
-            className="rounded-md bg-neutral-800 px-4 py-2 text-sm text-neutral-200 transition-all duration-200 hover:scale-105 hover:bg-neutral-700 active:scale-98"
-          >
-            Copy Account Token
-          </Button>
-          <Button
-            onClick={() => setShowRecoverModal(true)}
-            className="rounded-md bg-neutral-800 px-4 py-2 text-sm text-neutral-200 transition-all duration-200 hover:scale-105 hover:bg-neutral-700 active:scale-98"
-          >
-            Recover Account
-            <span
-              className="animate-pulse-subtle ml-2 cursor-help text-neutral-400 transition-colors duration-200 hover:text-purple-400"
-              title="If you log in from a new device, use this token to recover your links."
+      <main className="animate-fade-in-up container mx-auto min-h-screen py-10 text-neutral-50">
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-3xl font-extrabold text-purple-600 sm:text-4xl">
+            Welcome, {user?.username ?? "Guest"}!
+          </h1>
+          <div className="flex space-x-3">
+            <Button
+              onClick={() => setShowRecoverModal(true)}
+              variant="outline"
+              size="sm"
+              className="animate-pulse-subtle rounded-full border-neutral-700 text-neutral-300 transition-all duration-200 hover:border-purple-400 hover:text-purple-400"
             >
               ?
-            </span>
-          </Button>
+            </Button>
+            {user?.id && (
+              <Button
+                onClick={handleCopyToken}
+                variant="outline"
+                size="sm"
+                className="animate-wobble-hover rounded-full border-neutral-700 text-neutral-300 transition-all duration-200 hover:border-purple-400 hover:text-purple-400"
+              >
+                Copy Token
+              </Button>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
-          <div className="animate-fade-in-up rounded-lg border border-neutral-800 bg-neutral-900 p-8 shadow-xl">
-            <h2 className="mb-6 text-2xl font-semibold text-neutral-50">
-              Shorten a New Link
-            </h2>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <section className="animate-fade-in-left rounded-lg border border-neutral-800 bg-neutral-900 p-6 shadow-xl">
             <ShortenForm
               onLinkShortened={handleLinkShortened}
               linkLimitExceeded={linkLimitExceeded}
               dailyLimitExceeded={dailyLimitExceeded}
             />
-          </div>
+          </section>
 
-          <div className="animate-fade-in-up rounded-lg border border-neutral-800 bg-neutral-900 p-8 shadow-xl">
-            <h2 className="mb-6 text-2xl font-semibold text-neutral-50">
-              Your Shortened Links ({shortenedLinks?.length ?? 0}/
-              {lifetimeLimit})
-            </h2>
+          <section className="animate-fade-in-right rounded-lg border border-neutral-800 bg-neutral-900 p-6 shadow-xl">
+            <h3 className="mb-4 text-2xl font-semibold text-neutral-50">
+              Your Shortened Links
+            </h3>
             {isLoadingLinks ? (
-              <Spinner className="h-8 w-8 text-purple-600" />
+              <div className="flex items-center justify-center py-10">
+                <Spinner />
+                <p className="ml-3 text-neutral-400">Loading links...</p>
+              </div>
             ) : shortenedLinks && shortenedLinks.length > 0 ? (
-              <div className="space-y-4">
+              <ul className="space-y-4">
                 {shortenedLinks.map((link) => (
-                  <div
+                  <li
                     key={link.id}
-                    className={`animate-fade-in-up flex transform flex-col items-start justify-between rounded-lg bg-neutral-800 p-5 transition-all duration-200 hover:scale-[1.01] hover:bg-neutral-700 hover:shadow-2xl sm:flex-row sm:items-center ${link.expiresAt && new Date(link.expiresAt) < new Date() ? "pointer-events-none text-neutral-500 line-through opacity-50" : ""}`}
+                    className="animate-fade-in group flex flex-col items-start justify-between rounded-md border border-neutral-700 bg-neutral-800 p-4 shadow-sm transition-all duration-300 hover:shadow-lg sm:flex-row sm:items-center"
                   >
-                    <div>
-                      <p className="font-semibold text-neutral-200">
-                        {link.longUrl}
+                    <div className="mb-2 flex-grow sm:mb-0">
+                      <p className="text-sm text-neutral-400">
+                        Original:{" "}
+                        <a
+                          href={link.longUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-400 underline hover:text-purple-300"
+                        >
+                          {link.longUrl.length > 50
+                            ? `${link.longUrl.substring(0, 50)}...`
+                            : link.longUrl}
+                        </a>
                       </p>
-                      <Link href={`/s/${link.shortCode}`} passHref>
-                        <span className="cursor-pointer text-purple-400 transition-colors duration-200 hover:underline">
+                      <p className="text-lg font-semibold text-neutral-50">
+                        Short:{" "}
+                        <Link
+                          href={`/s/${link.shortCode}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-400 hover:underline"
+                        >
                           {`${window.location.origin}/s/${link.shortCode}`}
-                        </span>
-                      </Link>
-                      {link.expiresAt && (
-                        <p className="text-xs text-neutral-400">
-                          Expires:{" "}
-                          {new Date(link.expiresAt).toLocaleDateString()}
-                        </p>
-                      )}
+                        </Link>
+                      </p>
+                      <p className="text-xs text-neutral-500">
+                        Clicks: {link.clicks} |
+                        {link.expiresAt
+                          ? ` Expires: ${new Date(link.expiresAt).toLocaleDateString()}`
+                          : " Never expires"}
+                      </p>
                     </div>
                     <Button
                       onClick={() =>
-                        toast({
-                          title: "View analytics for this link",
-                          variant: "default",
-                        })
+                        void handleCopy(
+                          `${window.location.origin}/s/${link.shortCode}`,
+                        )
                       }
-                      className="rounded-md bg-neutral-700 px-3 py-1 text-xs text-neutral-200 transition-all duration-200 hover:scale-105 hover:bg-neutral-600 active:scale-98"
+                      variant="secondary"
+                      size="sm"
+                      className="ml-0 shrink-0 bg-neutral-700 text-neutral-50 transition-all duration-200 hover:bg-purple-600 hover:text-white sm:ml-4"
                     >
-                      View Analytics
+                      Copy
                     </Button>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
               <p className="text-center text-neutral-400">
-                No links shortened yet. Shorten one now!
+                You haven&apos;t shortened any links yet.
               </p>
             )}
-          </div>
+          </section>
         </div>
 
         {/* Username Modal */}
@@ -444,6 +477,6 @@ export default function DashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

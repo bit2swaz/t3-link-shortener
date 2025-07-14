@@ -11,7 +11,7 @@ export default function HomePage() {
       <Navbar />
       <main className="flex min-h-screen flex-col bg-neutral-950 p-4 text-neutral-50">
         <div className="flex flex-grow flex-col items-center justify-center py-20 text-center">
-          <h1 className="gradient-text animate-gradient-text animate-fade-in-down mb-6 text-5xl font-extrabold sm:text-6xl md:text-7xl">
+          <h1 className="gradient-text animate-gradient-text animate-fade-in-down mb-6 text-5xl font-extrabold drop-shadow-[0_0_8px_rgba(167,139,250,0.6)] sm:text-6xl md:text-7xl">
             Shorten. <span className="text-purple-600">Share.</span> Track.
           </h1>
           <p className="animate-fade-in mb-10 max-w-3xl text-lg text-neutral-300 sm:text-xl md:text-2xl">
