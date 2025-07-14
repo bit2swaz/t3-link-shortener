@@ -9,7 +9,7 @@ const ContactUsPage = () => {
       <Navbar />
       <main className="flex min-h-screen flex-col bg-neutral-950 p-4 text-neutral-50">
         <div className="flex flex-grow flex-col items-center justify-center py-20 text-center">
-          <h1 className="gradient-text animate-gradient-text animate-fade-in-down mb-6 text-4xl font-bold sm:text-5xl md:text-6xl">
+          <h1 className="gradient-text animate-gradient-text animate-fade-in-down z-10 mb-6 inline-block text-4xl font-bold sm:text-5xl md:text-6xl">
             Contact Us
           </h1>
           <p className="animate-fade-in mb-4 max-w-3xl text-lg leading-relaxed text-neutral-300 sm:text-xl md:text-2xl">
