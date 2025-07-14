@@ -241,7 +241,7 @@ export default function DashboardPage() {
     <div className="flex min-h-screen flex-col bg-neutral-950 text-neutral-50">
       <Navbar />
       <main className="container mx-auto flex-grow p-8">
-        <h1 className="animate-slide-up mb-8 text-4xl font-bold text-neutral-50">
+        <h1 className="animate-fade-in-down mb-8 text-3xl font-bold text-neutral-50 sm:text-4xl">
           Welcome to your Dashboard, {userProfile?.username ?? "User"}!
         </h1>
 
@@ -258,7 +258,7 @@ export default function DashboardPage() {
           >
             Recover Account
             <span
-              className="ml-2 cursor-help text-neutral-400 transition-colors duration-200 hover:text-purple-400"
+              className="animate-pulse-subtle ml-2 cursor-help text-neutral-400 transition-colors duration-200 hover:text-purple-400"
               title="If you log in from a new device, use this token to recover your links."
             >
               ?
@@ -266,8 +266,8 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-          <div className="animate-fade-in rounded-lg border border-neutral-800 bg-neutral-900 p-8 shadow-xl">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
+          <div className="animate-fade-in-up rounded-lg border border-neutral-800 bg-neutral-900 p-8 shadow-xl">
             <h2 className="mb-6 text-2xl font-semibold text-neutral-50">
               Shorten a New Link
             </h2>
@@ -278,7 +278,7 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div className="animate-fade-in rounded-lg border border-neutral-800 bg-neutral-900 p-8 shadow-xl">
+          <div className="animate-fade-in-up rounded-lg border border-neutral-800 bg-neutral-900 p-8 shadow-xl">
             <h2 className="mb-6 text-2xl font-semibold text-neutral-50">
               Your Shortened Links ({shortenedLinks?.length ?? 0}/
               {lifetimeLimit})
@@ -290,14 +290,14 @@ export default function DashboardPage() {
                 {shortenedLinks.map((link) => (
                   <div
                     key={link.id}
-                    className={`flex transform items-center justify-between rounded-lg bg-neutral-800 p-5 transition-all duration-200 hover:scale-[1.01] hover:bg-neutral-700 hover:shadow-lg ${link.expiresAt && new Date(link.expiresAt) < new Date() ? "pointer-events-none text-neutral-500 line-through opacity-50" : ""}`}
+                    className={`animate-fade-in-up flex transform flex-col items-start justify-between rounded-lg bg-neutral-800 p-5 transition-all duration-200 hover:scale-[1.01] hover:bg-neutral-700 hover:shadow-2xl sm:flex-row sm:items-center ${link.expiresAt && new Date(link.expiresAt) < new Date() ? "pointer-events-none text-neutral-500 line-through opacity-50" : ""}`}
                   >
                     <div>
                       <p className="font-semibold text-neutral-200">
                         {link.longUrl}
                       </p>
                       <Link href={`/s/${link.shortCode}`} passHref>
-                        <span className="cursor-pointer text-purple-400 hover:underline">
+                        <span className="cursor-pointer text-purple-400 transition-colors duration-200 hover:underline">
                           {`${window.location.origin}/s/${link.shortCode}`}
                         </span>
                       </Link>
@@ -408,7 +408,7 @@ export default function DashboardPage() {
         open={showLinkCreatedToast}
         onOpenChange={setShowLinkCreatedToast}
       >
-        <DialogContent className="animate-fade-in animate-slide-in-up">
+        <DialogContent className="animate-pop-in relative z-50 w-full max-w-lg rounded-lg border bg-neutral-900 p-6 shadow-lg">
           <DialogHeader>
             <DialogTitle>Your Shortened URL!</DialogTitle>
           </DialogHeader>
@@ -429,7 +429,7 @@ export default function DashboardPage() {
                   variant: "default",
                 });
               }}
-              className="rounded-md bg-purple-600 text-neutral-50 hover:bg-purple-700"
+              className="bg-purple-600 text-white hover:bg-purple-700"
             >
               Copy Short URL
             </Button>
@@ -437,7 +437,7 @@ export default function DashboardPage() {
           <DialogFooter>
             <Button
               onClick={() => setShowLinkCreatedToast(false)}
-              className="rounded-md bg-neutral-700 text-neutral-50 hover:bg-neutral-600"
+              className="bg-neutral-700 text-neutral-50 hover:bg-neutral-600"
             >
               Close
             </Button>

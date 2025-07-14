@@ -161,7 +161,7 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
   return (
     <form
       onSubmit={handleShorten}
-      className="space-y-6 rounded-lg border border-neutral-800 bg-neutral-900 p-8 shadow-md"
+      className="animate-fade-in-up space-y-6 rounded-lg border border-neutral-800 bg-neutral-900 p-8 shadow-md"
     >
       <h3 className="mb-4 text-2xl font-semibold text-neutral-50">
         Shorten a New URL
@@ -178,7 +178,7 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
           value={longUrl}
           onChange={(e) => setLongUrl(e.target.value)}
           required
-          className="mt-1 border-neutral-700 bg-neutral-800 text-neutral-50 transition-all duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500"
+          className="mt-1 rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500"
         />
       </div>
 
@@ -192,7 +192,7 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
           placeholder="my-cool-link"
           value={customSlug}
           onChange={handleCustomSlugChange}
-          className="mt-1 border-neutral-700 bg-neutral-800 text-neutral-50 transition-all duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500"
+          className="mt-1 rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500"
         />
         {customSlug.length > 0 && slugStatus === "available" && (
           <p className="animate-fade-in mt-2 text-sm text-green-500">
@@ -214,10 +214,10 @@ const ShortenForm: React.FC<ShortenFormProps> = ({
           value={expiry}
           onValueChange={(value: ExpiryOption) => setExpiry(value)}
         >
-          <SelectTrigger className="mt-1 border-neutral-700 bg-neutral-800 text-neutral-50 transition-all duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500">
+          <SelectTrigger className="mt-1 rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all duration-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500">
             <SelectValue placeholder="Select expiry" />
           </SelectTrigger>
-          <SelectContent className="border-neutral-700 bg-neutral-800 text-neutral-50 transition-all duration-200 focus:border-purple-500 focus:ring-purple-500">
+          <SelectContent className="rounded-md border-neutral-700 bg-neutral-800 text-neutral-50 shadow-sm transition-all duration-200 focus:border-purple-500 focus:ring-purple-500">
             <SelectItem value="1_day">1 Day</SelectItem>
             <SelectItem value="1_week">1 Week</SelectItem>
             <SelectItem value="1_month">1 Month</SelectItem>

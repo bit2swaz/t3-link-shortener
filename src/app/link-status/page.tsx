@@ -14,10 +14,10 @@ export default function LinkStatusPage() {
       <Navbar />
       <main className="flex flex-grow items-center justify-center px-4 text-center">
         <div className="w-full max-w-md space-y-6 p-8">
-          <h1 className="animate-fade-in-down mb-6 text-4xl font-bold text-red-500">
+          <h1 className="animate-fade-in-down mb-6 text-4xl font-bold text-red-500 sm:text-5xl">
             Link Status
           </h1>
-          <p className="animate-fade-in mb-8 text-lg text-neutral-300">
+          <p className="animate-fade-in mb-8 text-lg text-neutral-300 sm:text-xl">
             {message}
           </p>
           <Link href="/" passHref>
