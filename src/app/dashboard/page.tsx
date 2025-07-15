@@ -306,7 +306,11 @@ export default function DashboardPage() {
                 {shortenedLinks.map((link) => (
                   <li
                     key={link.id}
-                    className="animate-fade-in group flex flex-col items-start justify-between rounded-md border border-neutral-700 bg-neutral-800 p-4 shadow-sm transition-all duration-300 hover:shadow-lg sm:flex-row sm:items-center"
+                    className={`animate-fade-in group flex flex-col items-start justify-between rounded-md border border-neutral-700 bg-neutral-800 p-4 shadow-sm transition-all duration-300 hover:shadow-lg sm:flex-row sm:items-center ${
+                      link.expiresAt && new Date(link.expiresAt) < new Date()
+                        ? "text-neutral-500 line-through opacity-60"
+                        : ""
+                    }`}
                   >
                     <div className="mb-2 flex-grow sm:mb-0">
                       <p className="text-sm text-neutral-400">
